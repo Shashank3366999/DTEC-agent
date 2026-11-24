@@ -369,7 +369,7 @@ class BridgeTest(unittest.TestCase):
         frames = 50
         data = array.array("h")
         for _ in range(frames):
-            data.extend([100, 200, 300, 400, 30000, 30000])  # 4 mics, 2 speaker reference channels
+            data.extend([100, 200, 300, 400, 0, 0])  # 4 mics, 2 speaker reference channels (quiet)
         msg = types.SimpleNamespace(info=types.SimpleNamespace(channels=6), mic_channels=4,
                                     data=types.SimpleNamespace(data=data.tobytes()))
         self.b.on_raw_mic(msg)
@@ -377,6 +377,15 @@ class BridgeTest(unittest.TestCase):
         out.frombytes(self.b.mic_q.get())
         self.assertEqual(len(out), frames)
         self.assertEqual(out[0], 250 * 8)  # mixed mics times the default gain
+
+    def test_raw_mic_is_muted_while_the_speaker_reference_is_loud(self):
+        import array
+        data = array.array("h")
+        for _ in range(50):
+            data.extend([100, 200, 300, 400, 30000, 30000])  # the robot's own voice in the reference channels
+        self.b.on_raw_mic(types.SimpleNamespace(info=types.SimpleNamespace(channels=6), mic_channels=4,
+                                                data=types.SimpleNamespace(data=data.tobytes())))
+        self.assertTrue(self.b.mic_q.empty())
 
     def test_raw_mic_is_muted_while_the_robot_speaks(self):
         self.b.speaking_until = time.monotonic() + 5
