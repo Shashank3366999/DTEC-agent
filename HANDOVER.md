@@ -77,11 +77,21 @@ It counts: the start spot, then every step the operator reports as done. When th
 
 By the new brief the MangoBot operator walks the robot and our agent only tells them where to go. Moving the robot from code is out of scope and against the robot rules, so there is no walking code here and there must not be.
 
-## Web app online (15 min)
+## Web app: live on Google Cloud Run
 
-render.com → New Web Service → repo → Root `webapp` → Start `node server.js` → env `TOOL_SECRET=<long word>`, then `PUBLIC_URL=<its URL>`. Check `<URL>/health`.
+**https://dtec-agent-49766095359.me-central1.run.app** (project `salesai-477506`, region me-central1 Doha, service `dtec-agent`, one instance kept warm).
+Pages: `/live`, `/walk`, `/markers`, `/kiosk`. The ElevenLabs post-call webhook is registered to it, so finished conversations show on `/live`.
 
-Then, once, with the URL in `.env` as `WEBAPP_URL=https://...`: `cd sdk && python3 -m oasis_voice build`. It registers the ElevenLabs post-call webhook and prints a **webhook secret**: add it on Render as `ELEVENLABS_WEBHOOK_SECRET` and redeploy. From then on every finished conversation appears on `/live` within a minute. The signature check is unit-tested but has not yet been exercised against a real ElevenLabs delivery: after the first conversation, check the Render log for `/api/elevenlabs/post-call 200`; a `401` means the secret is wrong. Free Render sleeps: open `/live` before each slot. After changing the profile run `python3 -m oasis_voice export` (or `build`) and push, so the site gets the new map.
+The robot's `config.env` needs `TOOL_SECRET=<the value in the laptop's .env>`; `WEBAPP_URL` is already filled in the package.
+
+Redeploy after changing `webapp/`:
+```
+cd webapp && docker build --platform linux/amd64 -t me-central1-docker.pkg.dev/salesai-477506/cloud-run-source-deploy/dtec-agent:v2 . && docker push $_
+gcloud run deploy dtec-agent --image me-central1-docker.pkg.dev/salesai-477506/cloud-run-source-deploy/dtec-agent:v2 --region me-central1 --project salesai-477506
+```
+(Docker login first: `gcloud auth print-access-token | docker login -u oauth2accesstoken --password-stdin me-central1-docker.pkg.dev`.)
+After changing the profile: `cd sdk && python3 -m oasis_voice build` updates the agent; the live site reads the profile from the container, so redeploy too.
+Data (trips, nav) lives in the container's memory and is lost on a redeploy. Fine for the demo.
 
 ## Secrets
 

@@ -19,11 +19,12 @@ Hi! Here is the robot package. Everything is ready, you only run it. Four steps,
 
 ```
 cp config.env.example config.env
+nano config.env        # put the secret word I send you separately after TOOL_SECRET=
 chmod +x run_robot.sh
 ./run_robot.sh setup
 ./run_robot.sh doctor
 ```
-Every line should say OK. "FIX: WEBAPP_URL not set" is fine, ignore it. "FIX: the floor map is still demo data" is fine for now.
+Every line should say OK. "FIX: the floor map is still demo data" is fine for now.
 
 **3. Run it**
 
@@ -39,6 +40,8 @@ Before you leave the robot: `./run_robot.sh restore`
 **4. Measure the floor (most important, 20 minutes)**
 
 The directions are made up until we have the real floor. Stand where the robot will start, facing forward. Count steps (one step is about 0.7 m) to each place we will demo: the call booths, the kitchen, the meeting room, the conference room. Note every corner where the robot has to turn, and which places are on a straight line from each other. Photos help. Send it all to me and I'll send back one file to replace.
+
+**Live screen:** open https://dtec-agent-49766095359.me-central1.run.app/live on any laptop or phone next to the robot. It shows what the robot told the operator and the map.
 
 **If something goes wrong**, send me a photo of the screen. The quick start inside the zip has a table of fixes.
 

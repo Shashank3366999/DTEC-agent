@@ -21,7 +21,7 @@ To find a robot on the Wi-Fi from a Mac: `dns-sd -B _agibot._tcp local`, then `d
 
 ```bash
 cd ~/hercules/oasis_voice_robot
-cp config.env.example config.env     # set WEBAPP_URL and TOOL_SECRET (from the team); the rest can stay
+cp config.env.example config.env     # put the TOOL_SECRET the team sends you; the rest can stay
 chmod +x run_robot.sh
 ./run_robot.sh setup
 ./run_robot.sh doctor                # every line OK, or a FIX line that says what to do

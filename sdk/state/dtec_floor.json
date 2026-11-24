@@ -74,5 +74,9 @@
       "id": "test_9801m876jpwdehmanngq56hsngf0",
       "hash": "cae39528dfb8"
     }
+  },
+  "webhook": {
+    "id": "c852c26851544fb98be212fe408b73f0",
+    "url": "https://dtec-agent-49766095359.me-central1.run.app/api/elevenlabs/post-call"
   }
 }
