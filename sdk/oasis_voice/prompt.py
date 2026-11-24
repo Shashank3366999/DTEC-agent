@@ -106,6 +106,15 @@ def build_nav_prompt(profile):
     names = {p["id"]: p["names"]["en"][0] for p in profile["places"]}
     sched = profile.get("schedule", {}).get("items", [])
     schedule = "\n".join(f"- {names.get(i['place'], i['place'])}: {i.get('date', '')} {i['when']}: {i['en']}" for i in sched)
+    from .navigator import Navigator, STEP_METRES
+    nav = Navigator(profile)
+    spots = [p for p in profile["places"] if p.get("node")]
+    rows = []
+    for i, a in enumerate(spots):
+        for b in spots[i + 1:]:
+            metres, _ = nav.shortest(a["node"], b["node"])
+            rows.append(f"- {names[a['id']]} to {names[b['id']]}: about {max(1, round(metres / STEP_METRES))} steps")
+    distances = "\n".join(rows)
     voices = profile.get("voice", {}).get("supported_voices", [])
     tag = next((v["label"] for v in voices if v["label"].lower() == "operator"), "")
     tag_rule = (f"\n- Put every operator line inside <{tag}>...</{tag}> so it is spoken in the operator voice, keeping the word "
@@ -171,7 +180,9 @@ You are {bot.get('persona', 'calm and brief')}. You are on {bot['location']}.
 
 # How you speak
 
-- Very short. One sentence per person. No lists, markdown, emoji or URLs.
+- Warm and natural, like a good concierge, not a machine. Short: one or two sentences per person. No lists,
+  markdown, emoji or URLs.
+- Small talk, thanks, a joke: answer kindly in one sentence, then steer back to where they want to go.
 - First confirm what you understood in a few words, then act.
 - Arabic: Emirati words, not the caller's other dialects. Say numbers and place names in Arabic.
 
@@ -182,6 +193,13 @@ You are {bot.get('persona', 'calm and brief')}. You are on {bot['location']}.
 # What is happening on this floor (local times with their date; now it is {{{{system__time}}}}; compare the date too)
 
 {schedule}
+
+# Distances on this floor (walking, from the map; one step is about {STEP_METRES} m and takes about a second)
+
+{distances}
+
+- If asked how far or how long between two places, answer from this table only, in steps and roughly in time.
+  From "here", use the place the robot is at. Not in the table: say you don't know.
 
 # Be one step ahead
 
