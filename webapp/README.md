@@ -25,7 +25,7 @@ If `TOOL_SECRET` is set, every POST must send the header `x-tool-secret: <secret
 ## Run on your laptop
 
 ```bash
-cd hercules/webapp
+cd webapp
 TOOL_SECRET=pick-a-long-random-word node server.js
 # open http://localhost:3000/screen
 npm test   # runs the smoke test
@@ -44,7 +44,7 @@ curl -X POST localhost:3000/api/check-in -H 'content-type: application/json' \
 ### Option A: Render (recommended)
 1. Push this repo to GitHub (private is fine).
 2. On render.com: **New → Web Service** → pick the repo.
-3. **Root directory:** `hercules/webapp` · **Build command:** leave empty · **Start command:** `node server.js`
+3. **Root directory:** `webapp` · **Build command:** leave empty · **Start command:** `node server.js`
 4. **Environment variables:** `TOOL_SECRET` = a long random word. `PUBLIC_URL` = the Render URL once you have it, for example `https://hercules-xyz.onrender.com`.
 5. Deploy, then open `<url>/health`. It should say `{"ok":true}`.
 

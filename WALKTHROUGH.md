@@ -8,7 +8,7 @@ Part 2  Put the web app online                    ⬜ to do
 Part 3  Connect the agent to the web app          ⬜ to do
 Part 4  Put the agent ID where it is needed       ⬜ to do
 Part 5  Show the demo                             ⬜ to do
-Extra   Add Chandan's directions                  ⬜ when they arrive
+Extra   Add the on-site directions                ⬜ when they arrive
 ```
 
 Our agent ID: **`agent_4001m86cac97egtb840g9whcrbz3`** (also saved in `agent/agent_id.txt`). It is not secret.
@@ -19,11 +19,11 @@ Our agent ID: **`agent_4001m86cac97egtb840g9whcrbz3`** (also saved in `agent/age
 
 **Already done.** This is how it was made, in case you need to do it again.
 
-1. Open `hercules/.env` in VS Code and put the ElevenLabs key after `ELEVENLABS_API_KEY=`. Save.
+1. In the project folder, copy `.env.example` to a new file called `.env`, and put the ElevenLabs key after `ELEVENLABS_API_KEY=`. Save.
    *Never paste the key in a chat or a doc.*
 2. Open a terminal and run:
    ```bash
-   cd ~/Documents/hackathn/hercules
+   cd DTEC-agent
    python3 agent/setup_agent.py
    ```
 3. **You should see:** `Done. Agent ID: agent_…`
@@ -40,18 +40,18 @@ The web app is the screen with check-ins and the QR code. It has to be online so
 
 ### Step 1: Run it on your laptop (for testing)
 ```bash
-cd ~/Documents/hackathn/hercules/webapp
+cd DTEC-agent/webapp
 node server.js
 ```
 **You should see:** `Hercules reception backend on http://localhost:3000`
 Open http://localhost:3000/screen and http://localhost:3000/test side by side and press the buttons on the test page.
 
 ### Step 2: Put it online on Render (free)
-1. Put the `hercules` folder on GitHub (a private repo is fine). Check `.env` is **not** in it (it is in `.gitignore`).
+1. The code is already on GitHub in the private `DTEC-agent` repo. (`.env` is never uploaded: it is in `.gitignore`.)
 2. Go to render.com and sign up (GitHub login is easiest).
 3. Click **New → Web Service** → pick the repo.
 4. Fill in:
-   - **Root Directory:** `webapp` (or `hercules/webapp` if the repo contains the whole hackathon folder)
+   - **Root Directory:** `webapp`
    - **Build Command:** leave empty
    - **Start Command:** `node server.js`
    - **Instance type:** Free
@@ -72,7 +72,7 @@ Open http://localhost:3000/screen and http://localhost:3000/test side by side an
 
 This makes "check in" and "send route to phone" work.
 
-1. Open `hercules/.env` and fill in:
+1. Open `.env` and fill in:
    ```
    WEBAPP_URL=https://hercules-abcd.onrender.com
    TOOL_SECRET=hercules-oasis-4821-lobby
@@ -80,7 +80,7 @@ This makes "check in" and "send route to phone" work.
    (Same URL as Part 2, no `/` at the end, same secret word as on Render.)
 2. Run:
    ```bash
-   cd ~/Documents/hackathn/hercules
+   cd DTEC-agent
    python3 agent/setup_agent.py
    ```
 3. **You should see:** `Creating webhook tools…` then `Updating agent agent_4001m86…` then `Done.`
@@ -99,11 +99,11 @@ The ID goes in three places.
 
 | Where | Who | How |
 |---|---|---|
-| **The robot** | Chandan | In the robot terminal: `export ELEVENLABS_AGENT_ID=agent_4001m86cac97egtb840g9whcrbz3`, then `python3 elevenlabs_robot_bridge.py` (full steps in `robot/ROBOT_CHECKLIST.md`) |
+| **The robot** | On-site teammate | In the robot terminal: `export ELEVENLABS_AGENT_ID=agent_4001m86cac97egtb840g9whcrbz3`, then `python3 elevenlabs_robot_bridge.py` (full steps in `robot/ROBOT_CHECKLIST.md`) |
 | **The laptop demo** | Anyone | Open `<your URL>/kiosk?agent=agent_4001m86cac97egtb840g9whcrbz3` |
 | **The ElevenLabs website** | Account owner | Agents → *DSO Visitor Guide (Team Hercules)* → **Test AI agent** |
 
-**Message to send Chandan:**
+**Message to send the on-site teammate:**
 > Agent ID: `agent_4001m86cac97egtb840g9whcrbz3`
 > Reception screen: `<your URL>/screen` (open this on a laptop next to the robot)
 > At the robot: `export ELEVENLABS_AGENT_ID=agent_4001m86cac97egtb840g9whcrbz3` then `python3 elevenlabs_robot_bridge.py`. Say the wake word, then talk. If it interrupts itself, run it with `HALF_DUPLEX=1` in front.
@@ -115,7 +115,7 @@ The ID goes in three places.
 ### A. The robot demo (the main one, filmed in the last robot slot)
 1. **Before:** open `<your URL>/test` and press **Reset all data**, so the screen starts empty.
 2. Put a laptop with `<your URL>/screen` next to the robot. The camera must see **both** the robot and the screen.
-3. Chandan starts the bridge on the robot (Part 4).
+3. The on-site teammate starts the bridge on the robot (Part 4).
 4. One person plays the visitor and follows `pitch/demo_script.md`:
    - Says hello in Arabic → the robot says it's an AI guide
    - "Meeting at Oraseya Capital at three, I want to pray first" → short directions, offers check-in
@@ -137,14 +137,12 @@ The ID goes in three places.
 
 ---
 
-## Extra: Add Chandan's directions
+## Extra: Add the on-site directions
 
-When Chandan sends the walking directions:
+When the on-site teammate sends the walking directions:
 1. Open `agent/knowledge_base.md`.
 2. Replace each `NOT COLLECTED YET` with the real directions, and add `[On site 24 Nov]` at the end.
 3. Run `python3 agent/setup_agent.py` again. The agent knows the new directions straight away, on the robot too.
-
-(Or paste his messages to Claude and ask it to do this.)
 
 ---
 

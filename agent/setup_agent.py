@@ -12,7 +12,7 @@ What it does
        - public agent (no signed token), so the robot only needs the agent ID
   4. Saves the agent ID to agent_id.txt (the agent ID is not secret).
 
-Settings come from hercules/.env (never commit that file, never paste the key in chat):
+Settings come from the .env file in the project folder (never commit that file, never paste the key in chat):
   ELEVENLABS_API_KEY=...        required
   WEBAPP_URL=https://...        optional, the public URL of our web app (no trailing slash)
   TOOL_SECRET=...               optional, same value as the web app's TOOL_SECRET
@@ -21,9 +21,9 @@ Settings come from hercules/.env (never commit that file, never paste the key in
   LLM=...                       optional, e.g. gemini-2.5-flash (default: ElevenLabs' default)
 
 Run:
-  python3 hercules/agent/setup_agent.py            # create, or update if agent_id.txt exists
-  python3 hercules/agent/setup_agent.py --new      # always create a new agent
-  python3 hercules/agent/setup_agent.py --dry-run  # print what would be sent, call nothing
+  python3 agent/setup_agent.py            # create, or update if agent_id.txt exists
+  python3 agent/setup_agent.py --new      # always create a new agent
+  python3 agent/setup_agent.py --dry-run  # print what would be sent, call nothing
 """
 
 import json
@@ -127,7 +127,7 @@ def main():
     env = load_env(os.path.join(ROOT, ".env"))
     key = env.get("ELEVENLABS_API_KEY", "")
     if not key and not dry:
-        sys.exit("Put ELEVENLABS_API_KEY=... in hercules/.env first (never paste it in chat).")
+        sys.exit("Put ELEVENLABS_API_KEY=... in the .env file first (copy .env.example) (never paste it in chat).")
     api = Api(key, dry)
 
     webapp = env.get("WEBAPP_URL", "").rstrip("/")
