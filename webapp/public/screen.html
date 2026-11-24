@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DSO Visitor Guide · Reception</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600&family=IBM+Plex+Sans+Arabic:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+</head>
+<body>
+  <header class="bar">
+    <div class="brand"><span class="dot"></span>DSO Visitor Guide <span class="small">· AI assistant</span></div>
+    <div style="display:flex;gap:14px;align-items:center">
+      <span class="tag">Demo reception system · demo data</span>
+      <span class="live" id="live"><i></i><span>connecting</span></span>
+    </div>
+  </header>
+
+  <main class="screen">
+    <section class="panel">
+      <h2>Arrivals</h2>
+      <p class="sub">Visitors the guide has checked in. Their host is told they are here.</p>
+      <ul class="arrivals" id="arrivals"></ul>
+      <div class="empty" id="arrivals-empty">No visitors checked in yet.</div>
+    </section>
+
+    <section class="panel">
+      <h2>Your route</h2>
+      <p class="sub">Scan to open the route on your phone.</p>
+      <div id="route-box" class="empty">When the guide sends a route, it appears here.</div>
+    </section>
+  </main>
+  <p class="foot">The robot is an AI guide. Directions inside the building were collected on site; anything marked demo is example data.</p>
+
+  <script src="/screen.js"></script>
+</body>
+</html>

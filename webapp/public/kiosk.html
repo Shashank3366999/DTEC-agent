@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DSO Visitor Guide · Laptop demo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600&family=IBM+Plex+Sans+Arabic:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <header class="bar">
+    <div class="brand"><span class="dot"></span>DSO Visitor Guide <span class="small">· laptop demo</span></div>
+    <span class="tag">Backup demo · demo data</span>
+  </header>
+  <main class="kiosk">
+    <section class="panel talk">
+      <h2>Talk to the guide</h2>
+      <p>Press the call button and speak in Arabic or English.</p>
+      <div id="widget-slot"></div>
+      <p id="no-agent" class="warn" hidden>Add your agent ID to the address: <code>/kiosk?agent=YOUR_AGENT_ID</code>. The agent must be public for the widget to work.</p>
+    </section>
+    <iframe class="embed" src="/screen" title="Reception screen"></iframe>
+  </main>
+  <script>
+  (function () {
+    const agent = new URLSearchParams(location.search).get("agent");
+    if (!agent) { document.getElementById("no-agent").hidden = false; return; }
+    const w = document.createElement("elevenlabs-convai");
+    w.setAttribute("agent-id", agent);
+    document.getElementById("widget-slot").append(w);
+    const s = document.createElement("script");
+    s.src = "https://unpkg.com/@elevenlabs/convai-widget-embed";
+    s.async = true;
+    s.type = "text/javascript";
+    document.head.append(s);
+  })();
+  </script>
+</body>
+</html>

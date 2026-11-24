@@ -1,0 +1,16 @@
+{
+  "name": "hercules-reception",
+  "version": "1.0.0",
+  "description": "Mock reception backend for the Team Hercules AI Voice Navigator (Voice of the Oasis hackathon)",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node test/smoke.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "UNLICENSED",
+  "private": true
+}

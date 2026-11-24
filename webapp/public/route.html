@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Your route · DSO Visitor Guide</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600&family=IBM+Plex+Sans+Arabic:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <main class="phone">
+    <div class="brand" style="margin:6px 0 14px"><span class="dot"></span>DSO Visitor Guide</div>
+    <div class="card" id="card">
+      <p class="small">Loading your route…</p>
+    </div>
+    <p class="small" style="margin-top:14px">Sent by the DSO Visitor Guide, an AI assistant. Demo data. If anything looks wrong, please ask reception.</p>
+  </main>
+  <script>
+  (async function () {
+    const card = document.getElementById("card");
+    const id = location.pathname.split("/").filter(Boolean).pop();
+    const hasArabic = (s) => /[؀-ۿ]/.test(s || "");
+    function el(tag, cls, text) {
+      const e = document.createElement(tag);
+      if (cls) e.className = cls;
+      if (text != null) e.textContent = text;
+      return e;
+    }
+    try {
+      const res = await fetch("/api/route/" + encodeURIComponent(id), { cache: "no-store" });
+      if (!res.ok) throw new Error("not found");
+      const r = await res.json();
+      const rtl = /^ar/i.test(r.language || "") || hasArabic(r.destination);
+      card.replaceChildren();
+      if (rtl) { card.dir = "rtl"; document.documentElement.lang = "ar"; }
+      card.append(el("p", "small", rtl ? "طريقك إلى" : "Your route to"));
+      card.append(el("h1", null, r.destination));
+      const ol = el("ol", "steps");
+      for (const s of r.steps) ol.append(el("li", null, s));
+      card.append(ol);
+      const q = r.maps_query || r.destination + ", Dubai Silicon Oasis";
+      const a = el("a", "btn", rtl ? "افتح في خرائط Google" : "Open in Google Maps");
+      a.href = "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(q);
+      a.target = "_blank";
+      a.rel = "noopener";
+      card.append(a);
+      document.title = (rtl ? "طريقك إلى " : "Route to ") + r.destination;
+    } catch (e) {
+      card.replaceChildren(el("p", null, "Sorry, this route was not found. Please ask the guide again or ask reception."));
+    }
+  })();
+  </script>
+</body>
+</html>

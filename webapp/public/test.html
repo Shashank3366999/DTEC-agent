@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Test panel · DSO Visitor Guide</title>
+  <link rel="stylesheet" href="/styles.css">
+  <style>
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; padding: 24px 28px; }
+    @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
+    label { display: block; font-size: 14px; color: var(--muted); margin: 12px 0 4px; }
+    input, textarea, select { width: 100%; padding: 10px; font: inherit; border: 1px solid var(--line); border-radius: 8px; background: #fff; }
+    textarea { min-height: 90px; }
+    button { margin-top: 14px; padding: 10px 16px; border: 0; border-radius: 8px; background: var(--accent); color: #fff; font: inherit; font-weight: 600; cursor: pointer; }
+    button.secondary { background: #fff; color: var(--ink); border: 1px solid var(--line); }
+    pre { white-space: pre-wrap; word-break: break-word; background: #f0ede6; padding: 12px; border-radius: 8px; font-size: 13px; min-height: 40px; }
+  </style>
+</head>
+<body>
+  <header class="bar">
+    <div class="brand"><span class="dot"></span>Test panel <span class="small">· pretend to be the ElevenLabs agent</span></div>
+    <a href="/screen" target="_blank">Open reception screen ↗</a>
+  </header>
+  <main class="grid">
+    <section class="panel">
+      <h2>check_in_visitor</h2>
+      <label>visitor_name</label><input id="ci-name" value="Sara (demo)">
+      <label>host_company (required)</label><input id="ci-company" value="Oraseya Capital">
+      <label>meeting_time</label><input id="ci-time" value="15:00">
+      <label>language</label><select id="ci-lang"><option>en</option><option>ar</option></select>
+      <button id="ci-send">Send check-in</button>
+    </section>
+    <section class="panel">
+      <h2>send_route_to_phone</h2>
+      <label>destination (required)</label><input id="r-dest" value="Oraseya Capital, Dtec TechnoHub 1, first floor">
+      <label>steps (required, separate with |)</label>
+      <textarea id="r-steps">Walk past the reception desk to the lifts on your left | Take the lift to the first floor | Turn right, Oraseya Capital is the second door (demo data)</textarea>
+      <label>language</label><select id="r-lang"><option>en</option><option>ar</option></select>
+      <label>maps_query (optional)</label><input id="r-maps" value="">
+      <button id="r-send">Send route</button>
+      <button id="r-ar" class="secondary">Fill Arabic example</button>
+    </section>
+    <section class="panel">
+      <h2>Settings</h2>
+      <label>x-tool-secret (only if the server has TOOL_SECRET set)</label><input id="secret" type="password" autocomplete="off">
+      <button id="reset" class="secondary">Reset all data</button>
+    </section>
+    <section class="panel">
+      <h2>What the agent would get back</h2>
+      <pre id="out">Press a button.</pre>
+    </section>
+  </main>
+  <script>
+  (function () {
+    const $ = (id) => document.getElementById(id);
+    const out = $("out");
+    async function call(path, body) {
+      out.textContent = "…";
+      try {
+        const headers = { "content-type": "application/json" };
+        if ($("secret").value) headers["x-tool-secret"] = $("secret").value;
+        const r = await fetch(path, { method: "POST", headers, body: JSON.stringify(body || {}) });
+        out.textContent = r.status + "\n" + JSON.stringify(await r.json(), null, 2);
+      } catch (e) {
+        out.textContent = "Error: " + e.message;
+      }
+    }
+    $("ci-send").onclick = () => call("/api/check-in", {
+      visitor_name: $("ci-name").value, host_company: $("ci-company").value,
+      meeting_time: $("ci-time").value, language: $("ci-lang").value,
+    });
+    $("r-send").onclick = () => call("/api/send-route", {
+      destination: $("r-dest").value, steps: $("r-steps").value,
+      language: $("r-lang").value, maps_query: $("r-maps").value,
+    });
+    $("r-ar").onclick = () => {
+      $("r-dest").value = "مسجد واحة دبي للسيليكون، مبنى تكنو بوينت";
+      $("r-steps").value = "اخرج من المدخل الرئيسي | خذ سيارة أجرة إلى مبنى تكنو بوينت";
+      $("r-lang").value = "ar";
+      $("r-maps").value = "DSO Masjid Techno Point Dubai Silicon Oasis";
+    };
+    $("reset").onclick = () => call("/api/reset");
+  })();
+  </script>
+</body>
+</html>

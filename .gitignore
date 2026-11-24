@@ -1,0 +1,6 @@
+node_modules/
+webapp/data.json
+.env
+*.env
+__pycache__/
+.DS_Store
