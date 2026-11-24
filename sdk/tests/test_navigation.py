@@ -376,7 +376,7 @@ class BridgeTest(unittest.TestCase):
         out = array.array("h")
         out.frombytes(self.b.mic_q.get())
         self.assertEqual(len(out), frames)
-        self.assertEqual(out[0], 250)
+        self.assertEqual(out[0], 250 * 8)  # mixed mics times the default gain
 
     def test_raw_mic_is_muted_while_the_robot_speaks(self):
         self.b.speaking_until = time.monotonic() + 5

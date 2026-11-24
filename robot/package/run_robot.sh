@@ -37,9 +37,11 @@ export PYTHONPATH="$PWD/pylib:${PYTHONPATH:-}"
 
 set_lumi() {  # only_voice = the built-in assistant keeps quiet; normal = back to normal
   ros2 service call /aimdk_5Fmsgs/srv/SetAgentPropertiesRequest aimdk_msgs/srv/SetAgentPropertiesRequest \
-    "{contents: {properties: [{key: {value: 2}, value: $1}]}}" >/dev/null && aima em stop-app agent && aima em start-app agent
+    "{contents: {properties: [{key: {value: 2}, value: $1}]}}" | grep -oE 'status.*' | head -1 || true
+  # restarting the "agent" app is only possible where that app exists (not on robot 2); never fail on it
+  (aima em stop-app agent && aima em start-app agent) </dev/null >/dev/null 2>&1 || echo "(no 'agent' app to restart here, fine)"
 }
-set_volume() { ros2 service call /aimdk_5Fmsgs/srv/SetVolume aimdk_msgs/srv/SetVolume "{audio_volume: $1}" >/dev/null; }
+set_volume() { ros2 service call /aimdk_5Fmsgs/srv/SetVolume aimdk_msgs/srv/SetVolume "{audio_volume: $1}" | grep -oE 'status.*' | head -1 || true; }
 
 case "${1:-}" in
   setup)
@@ -52,6 +54,8 @@ case "${1:-}" in
     echo "setup done" ;;
   doctor)
     exec python3 -m oasis_voice doctor ;;
+  volume)
+    set_volume "${2:-${VOLUME:-95}}" ;;
   takeover)
     echo "Other bridges on the speaker (should be none but the robot's own):"
     ros2 topic info -v --no-daemon /aima/hal/audio/playback | grep -E "Node name|Publisher count" || true
@@ -65,5 +69,5 @@ case "${1:-}" in
   "")
     exec python3 -m oasis_voice bridge ;;
   *)
-    echo "usage: ./run_robot.sh [setup|doctor|takeover|restore]"; exit 1 ;;
+    echo "usage: ./run_robot.sh [setup|doctor|takeover|volume N|restore]"; exit 1 ;;
 esac
