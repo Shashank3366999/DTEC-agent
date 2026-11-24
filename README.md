@@ -21,7 +21,9 @@ Agent ID: **`agent_4001m86cac97egtb840g9whcrbz3`** (public, English + Arabic, PC
 | [`robot/`](robot/ROBOT_CHECKLIST.md) | Checklist for the person at the robot, and the organisers' original bridge as a fallback |
 | [`onsite/`](onsite/COLLECT_DIRECTIONS.md) | What to collect inside Dtec, and a message for the on-site teammate |
 | [`pitch/`](pitch/) | Demo script, 100-word description, 3 slides, pitch talk, likely questions |
+| [`HANDOVER.md`](HANDOVER.md) | **Start here:** what is done, what is left, deadlines |
 | [`WALKTHROUGH.md`](WALKTHROUGH.md) | Every step from zero to demo, in order |
+| `dist/oasis_voice_robot.zip` | The robot package (build it with `python3 robot/make_package.py`) |
 
 ## Quick start
 

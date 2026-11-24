@@ -6,6 +6,7 @@
   python3 -m oasis_voice prompt                print the agent instructions made from the profile
   python3 -m oasis_voice build [--dry-run]     create/update the ElevenLabs agent (needs ELEVENLABS_API_KEY)
   python3 -m oasis_voice chat [--say "..."]    text chat with the agent, tools run locally
+  python3 -m oasis_voice doctor [--laptop]     check everything the robot needs
   python3 -m oasis_voice bridge                run on the robot (needs ROS 2 + AimDK)
 
 Every command takes --profile PATH (default: profiles/dtec_navigator.json).
@@ -50,13 +51,14 @@ def agent_id_for(profile, env):
 
 def main(argv=None):
     ap = argparse.ArgumentParser(prog="oasis_voice", description=f"Oasis Voice SDK {__version__}")
-    ap.add_argument("command", choices=["validate", "ask", "prompt", "build", "chat", "bridge"])
+    ap.add_argument("command", choices=["validate", "ask", "prompt", "build", "chat", "bridge", "doctor"])
     ap.add_argument("text", nargs="?", default="", help="for 'ask': what the visitor said")
     ap.add_argument("--profile", default=DEFAULT_PROFILE)
     ap.add_argument("--lang", default="en")
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--new", action="store_true", help="for 'build': make a new agent instead of updating")
     ap.add_argument("--say", action="append", help="for 'chat': send these messages, then exit")
+    ap.add_argument("--laptop", action="store_true", help="for 'doctor': skip the robot-only checks")
     args = ap.parse_args(argv)
 
     try:
@@ -91,6 +93,10 @@ def main(argv=None):
             sys.exit(str(e))
         print(f"\nDone. Agent ID: {agent_id}")
         return
+
+    if args.command == "doctor":
+        from .doctor import run as doctor
+        sys.exit(0 if doctor(profile, agent_id_for(profile, env), env, robot=not args.laptop) else 1)
 
     from .actions import ToolRouter
     router = ToolRouter(profile, env.get("WEBAPP_URL", ""), env.get("TOOL_SECRET", ""))

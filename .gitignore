@@ -5,3 +5,4 @@ webapp/data.json
 __pycache__/
 .DS_Store
 sdk/.venv/
+dist/
