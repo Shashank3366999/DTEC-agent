@@ -6,3 +6,4 @@ __pycache__/
 .DS_Store
 sdk/.venv/
 dist/
+webapp/public/oasis_voice_robot.zip

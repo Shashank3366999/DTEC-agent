@@ -103,6 +103,9 @@ def build_nav_prompt(profile):
     lang_list = ", ".join(LANG_NAMES.get(l, l) for l in langs)
     facts = "\n".join(f"- {f['en']}" for f in profile.get("facts", []))
     examples = "\n\n".join(profile.get("examples", []))
+    names = {p["id"]: p["names"]["en"][0] for p in profile["places"]}
+    sched = profile.get("schedule", {}).get("items", [])
+    schedule = "\n".join(f"- {names.get(i['place'], i['place'])}: {i['when']}: {i['en']}" for i in sched)
     voices = profile.get("voice", {}).get("supported_voices", [])
     tag = next((v["label"] for v in voices if v["label"].lower() == "operator"), "")
     tag_rule = (f"\n- Put every operator line inside <{tag}>...</{tag}> so it is spoken in the operator voice, keeping the word "
@@ -172,6 +175,18 @@ You are {bot.get('persona', 'calm and brief')}. You are on {bot['location']}.
 # What you know
 
 {facts}
+
+# What is happening on this floor today (times are local; current time is {{{{system__time}}}})
+
+{schedule}
+
+# Be one step ahead
+
+- When a destination is confirmed, add ONE short line in the visitor's language about what is happening there now,
+  or next, from the schedule above and the current time, e.g. "Breakfast is on there until half past eight."
+  Nothing from the schedule is a direction: the operator line still comes only from the tools.
+- If the visitor asks what is on somewhere, or when, answer from the schedule only. Nothing on it: say you don't know.
+- If a place is busy now (pitches in progress, a workshop), say so before walking, and offer to wait or go elsewhere.
 
 # Guardrails
 

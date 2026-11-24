@@ -304,6 +304,7 @@ const TYPES = {
   ".svg": "image/svg+xml",
   ".png": "image/png",
   ".ico": "image/x-icon",
+  ".zip": "application/zip",
 };
 function serveFile(res, file) {
   const full = path.join(PUBLIC_DIR, file);
@@ -405,7 +406,7 @@ const server = http.createServer(async (req, res) => {
       if (p === "/kiosk") return serveFile(res, "kiosk.html");
       if (p === "/test") return serveFile(res, "test.html");
       if (p.startsWith("/r/")) return serveFile(res, "route.html");
-      if (/^\/[\w.-]+\.(css|js|json|svg|png|ico)$/.test(p)) return serveFile(res, p.slice(1));
+      if (/^\/[\w.-]+\.(css|js|json|svg|png|ico|zip)$/.test(p)) return serveFile(res, p.slice(1));
     }
     sendJson(res, 404, { ok: false, message: "not found" });
   } catch (err) {

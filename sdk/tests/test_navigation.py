@@ -127,12 +127,12 @@ class RouteTest(unittest.TestCase):
         """Reported live: "I'm at the main junction, take me to booth three" was routed from the start."""
         out = self.nav.start_route("booth_3", "hi", start_at="main junction")
         self.assertEqual(out["steps_left"], 1)
-        self.assertIn("Turn to face the kitchen, then walk straight about 12 metres", out["say_operator"])
+        self.assertIn("Turn to face the kitchen, then walk straight about 17 steps", out["say_operator"])  # 12 m
         self.assertEqual(self.nav.step_done(out["step"])["status"], "arrived")
         self.assertEqual(Navigator(PROFILE).start_route("booth_3", "hi", start_at="the moon")["status"], "not_found")
 
     def test_start_at_the_start_keeps_the_heading(self):
-        self.assertIn("Walk straight about 6", self.nav.start_route("kitchen", "en", start_at="the starting point")["say_operator"])
+        self.assertIn("Walk straight about 9 steps", self.nav.start_route("kitchen", "en", start_at="the starting point")["say_operator"])
 
     def test_one_visitor_changes_their_mind(self):
         self.nav.start_route("kitchen", "ar")

@@ -44,6 +44,10 @@ set_lumi() {  # only_voice = the built-in assistant keeps quiet; normal = back t
 set_volume() { ros2 service call /aimdk_5Fmsgs/srv/SetVolume aimdk_msgs/srv/SetVolume "{audio_volume: $1}" | grep -oE 'status.*' | head -1 || true; }
 
 case "${1:-}" in
+  update)
+    # pull the newest package from the live site and unpack it over this folder (config.env is kept)
+    cd .. && curl -fsSL "${WEBAPP_URL%/}/oasis_voice_robot.zip" -o new.zip && unzip -oq new.zip && rm new.zip \
+      && echo "updated. now run: ./run_robot.sh" ;;
   setup)
     # the user "run" is shared by every team and by the robot's own software: never pip --user, never sudo pip
     python3 -m pip install --no-deps --target ./pylib websocket-client
@@ -69,5 +73,5 @@ case "${1:-}" in
   "")
     exec python3 -m oasis_voice bridge ;;
   *)
-    echo "usage: ./run_robot.sh [setup|doctor|takeover|volume N|restore]"; exit 1 ;;
+    echo "usage: ./run_robot.sh [update|setup|doctor|takeover|volume N|restore]"; exit 1 ;;
 esac

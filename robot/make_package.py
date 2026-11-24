@@ -5,6 +5,7 @@ Run from the repo root:  python3 robot/make_package.py
 """
 
 import os
+import shutil
 import zipfile
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -43,7 +44,9 @@ def main():
                     full = os.path.join(folder, name)
                     z.write(full, f"{TOP}/{dst}/{os.path.relpath(full, base)}")
                     count += 1
-    print(f"Built {os.path.relpath(OUT, ROOT)} ({count} files, {os.path.getsize(OUT) // 1024} KB)")
+    web = os.path.join(ROOT, "webapp", "public", "oasis_voice_robot.zip")
+    shutil.copyfile(OUT, web)  # served by the web app, so the robot can `./run_robot.sh update`
+    print(f"Built {os.path.relpath(OUT, ROOT)} ({count} files, {os.path.getsize(OUT) // 1024} KB), copied to webapp/public")
 
 
 if __name__ == "__main__":

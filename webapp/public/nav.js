@@ -1,7 +1,7 @@
 // Browser copy of sdk/oasis_voice/navigator.py (blind navigation). Keep both identical: webapp/test/parity.mjs.
 // Needs oasis.js first.
 (function (root) {
-  const STRAIGHT = 25, AROUND = 135;
+  const STEP_METRES = 0.7, STRAIGHT = 25, AROUND = 135;
   const turnAngle = (a, b) => ((((b - a + 540) % 360) + 360) % 360) - 180;
   const r6 = (x) => Math.round(x * 1e6) / 1e6;
   const pairs = (list) => list.slice(1).map((b, i) => [list[i], b]);
@@ -89,8 +89,8 @@
       else head = `Turn ${a <= 60 ? "slightly " : ""}${t < 0 ? "left" : "right"}, then walk straight`;
       const metres = pairs(chain).reduce((s, [x, y]) => s + this.dist(x, y), 0);
       if (!midway) {
-        const m = Math.max(1, Math.floor(metres + 0.5));
-        head += ` about ${m} metre${m === 1 ? "" : "s"}`;
+        const n = Math.max(1, Math.floor(metres / STEP_METRES + 0.5));
+        head += ` about ${n} step${n === 1 ? "" : "s"}`;
       }
       const via = chain.slice(1, -1).filter((k) => this.placeAt[k]);
       const show = via.length > 1 ? [via[0], via[via.length - 1]] : via;

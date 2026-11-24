@@ -20,6 +20,7 @@ import math
 
 from .directory import Directory, normalize
 
+STEP_METRES = 0.7  # one normal step; the operator counts steps, not metres
 STRAIGHT = 25   # a bend smaller than this is still "straight"
 AROUND = 135    # a bend bigger than this is "turn around"
 
@@ -221,8 +222,8 @@ class Navigator:
             head = f"Turn {size}{'left' if t < 0 else 'right'}, then walk straight"
         metres = sum(self.dist(a, b) for a, b in zip(chain, chain[1:]))
         if not midway:  # midway we don't know exactly how far is left, so only use landmarks
-            m = max(1, math.floor(metres + 0.5))
-            head += f" about {m} metre{'' if m == 1 else 's'}"
+            n = max(1, math.floor(metres / STEP_METRES + 0.5))
+            head += f" about {n} step{'' if n == 1 else 's'}"
         via = [k for k in chain[1:-1] if k in self.place_at]
         passed = [f"{self.node_name(k)} {self._side(k, heading)}".strip() for k in (via[:1] + via[1:][-1:])]
         past = f", past {' and '.join(passed)}" if passed else ""

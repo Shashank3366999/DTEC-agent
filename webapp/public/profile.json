@@ -654,6 +654,72 @@
    }
   }
  },
+ "schedule": {
+  "_comment": "DEMO DATA until the team confirms. Times are Dubai time. The agent adds ONE proactive line about the destination from this.",
+  "timezone": "Asia/Dubai",
+  "items": [
+   {
+    "place": "conference_room",
+    "when": "08:45-10:45",
+    "en": "Pitches to the jury",
+    "ar": "عروض الفرق أمام لجنة التحكيم"
+   },
+   {
+    "place": "conference_room",
+    "when": "10:45-11:00",
+    "en": "Winners announced",
+    "ar": "إعلان الفائزين"
+   },
+   {
+    "place": "meeting_room",
+    "when": "07:15-07:30",
+    "en": "Pitching workshop",
+    "ar": "ورشة التحضير للعرض"
+   },
+   {
+    "place": "meeting_room",
+    "when": "15:00-17:00",
+    "en": "Mentors at the tables",
+    "ar": "المرشدون على الطاولات"
+   },
+   {
+    "place": "kitchen",
+    "when": "07:30-08:30",
+    "en": "Breakfast",
+    "ar": "الفطور"
+   },
+   {
+    "place": "kitchen",
+    "when": "13:00-14:00",
+    "en": "Lunch",
+    "ar": "الغداء"
+   },
+   {
+    "place": "kitchen",
+    "when": "19:00-20:00",
+    "en": "Dinner",
+    "ar": "العشاء"
+   },
+   {
+    "place": "kitchen",
+    "when": "23:00-23:59",
+    "en": "Late-night food",
+    "ar": "وجبة منتصف الليل"
+   },
+   {
+    "place": "team_tables",
+    "when": "06:00-08:30",
+    "en": "Teams finishing their demos; code freeze at 08:30",
+    "ar": "الفرق تنهي عروضها، إغلاق التسليم 08:30"
+   },
+   {
+    "place": "call_booths",
+    "when": "00:00-23:59",
+    "en": "Quiet; one person per booth",
+    "ar": "هادئة، شخص واحد لكل كابينة"
+   }
+  ]
+ },
  "agent_id": "agent_8901m8739kh0fna9wssypk694eq8",
  "visitor_lines": {
   "confirm": {
