@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Walk test · Dtec Floor Guide</title>
+  <link rel="stylesheet" href="/styles.css">
+  <script src="/oasis.js"></script>
+  <script src="/nav.js"></script>
+  <script src="/map.js"></script>
+</head>
+<body>
+  <header class="bar"><div class="brand"><span class="dot"></span>Walk test</div><span class="tag" id="demo" hidden>Demo layout</span></header>
+  <main class="walk">
+    <p class="small">Stand at the start, pick a place, and do exactly what it says, even when it is wrong. Works without the agent.</p>
+    <p class="say" id="say">Pick a place.</p>
+    <p class="say visitor" id="visitor"></p>
+    <div class="row"><button id="done" class="big" disabled>Done</button><button id="lost" class="plain">I'm somewhere else</button><button id="reset" class="plain">Start again</button></div>
+    <div id="choices" class="chips"></div>
+    <h2>Go to</h2>
+    <div class="row"><label>Visitor speaks <select id="lang"><option value="en">English</option><option value="ar">Arabic</option><option value="hi">Hindi</option></select></label></div>
+    <div id="places" class="chips"></div>
+    <svg class="map" id="map" role="img" aria-label="Floor map"></svg>
+  </main>
+  <script>
+  (async function () {
+    const $ = (id) => document.getElementById(id);
+    const profile = await (await fetch("/profile.json", { cache: "no-store" })).json();
+    $("demo").hidden = !profile.floor.demo;
+    const nav = new OasisNav.Navigator(profile);
+    let step = 0;
+    const chip = (box, text, fn) => { const b = document.createElement("button"); b.className = "chip"; b.textContent = text; b.onclick = fn; box.append(b); };
+    function show(out) {
+      if (out.step) step = out.step;
+      $("say").textContent = (out.say_operator || out.say || out.status).replace(/^Operator: /, "");
+      const v = [out.say_first_visitor, out.say_visitor].filter(Boolean).join("  ·  ");
+      $("visitor").textContent = v;
+      $("visitor").dir = /[؀-ۿ]/.test(v) ? "rtl" : "ltr";
+      $("done").disabled = !nav.route;
+      $("choices").replaceChildren();
+      drawMap($("map"), profile, nav.snapshot());
+    }
+    function go(id) {
+      const out = nav.startRoute(id, $("lang").value);
+      show(out);
+      if (out.status === "need_position") {
+        if (out.options.length) for (const o of out.options) chip($("choices"), o.name, () => show(nav.startRoute(id, $("lang").value, o.last_passed)));
+        else where();
+      }
+    }
+    function where() {
+      $("choices").replaceChildren();
+      $("say").textContent = "What is next to you?";
+      for (const k of Object.keys(nav.nodes)) chip($("choices"), nav.nodeName(k), () => {
+        show(nav.updatePosition(k));
+      });
+    }
+    $("done").onclick = () => show(nav.stepDone(step));
+    $("lost").onclick = where;
+    $("reset").onclick = () => { nav.reset(); step = 0; show({ status: "", say: "Pick a place." }); };
+    for (const p of profile.places) if (p.node) chip($("places"), p.names.en[0], () => go(p.id));
+    show({ status: "", say: "Pick a place." });
+  })();
+  </script>
+</body>
+</html>

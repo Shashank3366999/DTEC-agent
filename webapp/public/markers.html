@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Markers · Dtec Floor Guide</title>
+  <link rel="stylesheet" href="/styles.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+  <style>
+    .sheet { text-align: center; padding: 24px; break-after: page; }
+    .sheet svg { width: 17cm; max-width: 100%; height: auto; background: #fff; padding: 1cm; }
+    .sheet h1 { font-size: 40px; margin: 12px 0 0; }
+    @media print { .intro { display: none; } body { background: #fff; } }
+  </style>
+</head>
+<body>
+  <p class="intro walk">Print on A4, one page each. Stick each one at the robot's head height, next to its spot, facing the way the robot comes from.
+    The robot's camera then knows where it is. Printing is optional: without markers the robot counts steps.</p>
+  <main id="sheets"></main>
+  <script>
+  (async function () {
+    const profile = await (await fetch("/profile.json", { cache: "no-store" })).json();
+    const places = Object.fromEntries(profile.places.filter((p) => p.node).map((p) => [p.node, p.names.en[0]]));
+    for (const n of profile.floor.nodes) {
+      const qr = window.qrcode(0, "M");
+      qr.addData("DTEC:" + n.id);
+      qr.make();
+      const s = document.createElement("section");
+      s.className = "sheet";
+      s.innerHTML = qr.createSvgTag({ cellSize: 8, margin: 0, scalable: true });
+      const h = document.createElement("h1");
+      h.textContent = places[n.id] || n.name;
+      s.append(h);
+      document.getElementById("sheets").append(s);
+    }
+  })();
+  </script>
+</body>
+</html>

@@ -8,7 +8,10 @@ No packages to install. Needs Node 18 or newer.
 
 | Page | What it is |
 |---|---|
-| `/screen` | Reception screen. Open it on a laptop or monitor next to the robot. Shows arrivals and a QR code for the latest route. |
+| `/live` | **Blind navigation:** what the operator and the visitor were told, and the floor map. Open it next to the robot. |
+| `/walk` | Check the directions on a phone, without the agent. |
+| `/markers` | QR markers to print for the robot's camera. |
+| `/screen` | (Lobby guide) Reception screen. Open it on a laptop or monitor next to the robot. Shows arrivals and a QR code for the latest route. |
 | `/r/<id>` | The route card the visitor opens on their phone (from the QR code). Has an "Open in Google Maps" button. |
 | `/kiosk?agent=AGENT_ID` | Laptop demo: talk to the agent in the browser, with the reception screen beside it. Our backup if the robot fails. Needs a public agent. |
 
@@ -18,6 +21,8 @@ No packages to install. Needs Node 18 or newer.
 |---|---|
 | `POST /api/check-in` | `host_company` (required), `visitor_name`, `meeting_time`, `language` |
 | `POST /api/send-route` | `destination` (required), `steps` (required, separated by `\|`), `language`, `maps_query` |
+| `POST /api/elevenlabs/post-call` | ElevenLabs post-call webhook (HMAC-signed with `ELEVENLABS_WEBHOOK_SECRET`): fills the trip log on `/live` |
+| `POST /api/nav` | the live route, sent by the bridge or `/kiosk` after every tool |
 | `POST /api/reset` | clears all data (use before filming) |
 
 If `TOOL_SECRET` is set, every POST must send the header `x-tool-secret: <secret>`.

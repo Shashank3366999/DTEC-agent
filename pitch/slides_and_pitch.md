@@ -1,62 +1,37 @@
 # Slides (max 3) and pitch
 
-The pitch is 7 minutes in total: 3 min talk, 2 min demo (live or the robot video), 2 min questions.
-
-The jury scores: working demo 25%, technical quality and use of ElevenLabs 20%, voice experience 20%, challenge fit and could DSO run it 15%, pitch 10%, could it be a company 10%.
+8 minutes: **3 pitch, 3 demo (our robot video), 2 questions**. Scores: working demo 25%, technical and ElevenLabs 20%, voice 20%, challenge fit 15%, pitch 10%, investable 10%.
 
 ## Slide 1: The problem
-
-**Title:** Finding your way in DSO starts with asking a stranger
-
-- Offices, campuses, homes and malls sit side by side in Dubai Silicon Oasis.
-- First-time visitors, new hires and guests don't know which building, entrance or floor.
-- Nothing about the inside of buildings like Dtec is published, so they ask whoever is nearby.
-- Many speak Arabic first, and switch to English mid-sentence.
-
-*Picture:* a photo of the Dtec lobby (take one on site).
+**Nobody in the room speaks both languages and knows the way.** The visitor knows where they want to go. The operator can walk the robot. They can't understand each other, and neither knows the route.
 
 ## Slide 2: How it works
-
-**Title:** A voice guide that answers, then acts
-
-Simple diagram, left to right:
-Visitor → Robot (ears and mouth) → ElevenLabs agent (brain) → our web app → reception screen + phone
-
-Under it, three short points:
-- **Arabic and English**, switches when the visitor does, short answers first.
-- **Real directions** our team walked inside Dtec; says "I don't know" instead of guessing.
-- **Acts:** checks the visitor in with their host, and sends the route to their phone by QR code.
-
-Small print: built on ElevenLabs Agents, with a knowledge base, webhook tools, and language detection.
+**The AI talks. The planner decides.** Visitor (Arabic, English, Hindi) → ElevenLabs agent → route planner on the robot → operator (English), step by step.
+- Understands, asks, translates. **Never invents a turn**: every step comes from the map.
+- Knows where it is: counts steps, checks with people, reads markers with the camera.
+- Changed your mind? Plans from where the robot stands, and asks only when the answer matters.
+- Two voices from one agent: the operator hears their own voice. Every conversation is scored by ElevenLabs on five rules and feeds the map with what visitors asked for and could not get.
 
 ## Slide 3: Why DSO, and what's next
+**One map, every building, any body.** Today a robot and an operator; the same planner guides a new receptionist, a phone, or a blind visitor. Adding a floor takes about 20 minutes of measuring. A monthly fee per building.
 
-**Title:** One agent, every DSO building, every channel
+## Pitch talk (3 minutes)
+**Problem (40 s).** "A visitor walks in and asks in Arabic for a quiet place to take a call. The person walking the robot doesn't speak Arabic, and doesn't know this floor. Somebody has to understand one, guide the other, and know the way."
+**Answer (50 s).** "Our agent does all three. It talks to the visitor in their language and to the operator in English, one short step at a time, and calls the stop."
+**What's different (50 s).** "Language models are great at talking and bad at directions. So ours is not allowed to give any. A planner on the robot decides every step from a measured map. We tested it with a simulated operator who only knows the words it hears: 500 trips with the destination changed on the way, and every one ended in the right place."
+**Why DSO (30 s).** "Offices, campuses and malls side by side, visitors who speak Arabic first. One measured floor serves a robot today and phones tomorrow."
+**Close (10 s).** "You can change its mind. You can't make it guess."
 
-- **For DSO:** fewer repeat questions at reception, a welcome in the visitor's own language, and data on what visitors look for.
-- **Next:** the same agent on lobby screens, the DSO phone line and WhatsApp. Add more buildings by adding their directions.
-- **Business:** a monthly fee per building. Building managers see which places visitors ask about most.
-
-## Pitch talk (about 3 minutes)
-
-**Problem (40 s).** "Imagine it's your first day at Dubai Silicon Oasis. You have a meeting on the first floor of TechnoHub 1 at three, and you want to pray first. Offices, campuses and malls are side by side, nothing about the inside of the buildings is online, and the person you ask may not speak your language. So you ask a stranger."
-
-**Our answer (40 s).** "We gave the lobby robot a voice. The DSO Visitor Guide speaks Arabic and English, follows you when you switch, and gives short directions you can actually follow. It doesn't make things up: when it doesn't know, it says so and sends you to reception."
-
-**What makes it different (40 s).** "First, real directions: nothing about the inside of Dtec is published, so we walked the building ourselves. Second, it does things: it tells your host you've arrived and puts the route on your phone with a QR code. You saw both on the screen."
-
-**Why it matters for DSO (40 s).** "DSO already has more than 340 online services, but not a voice you can just talk to. This guide works on a robot today, and the same agent can run on a lobby screen, the phone line or WhatsApp tomorrow. Each new building only needs its directions added."
-
-**Close (20 s).** "Visitors get a welcome in their own language, reception answers fewer repeat questions, and DSO learns what visitors look for. Thank you."
+> Say only what is true on the day: the 500 trips are a simulation, on the map in the repo at that time.
 
 ## Likely questions
-
 | Question | Short answer |
 |---|---|
-| What if it gives a wrong direction? | It only answers from facts in its knowledge base. Everything else gets "I don't know, please ask reception". We tested trick questions. |
-| How did you get the inside directions? | We walked the building on Tuesday from the robot's spot, with photos and walking times. Anything we couldn't check is marked as demo data. |
-| How does it handle Arabic and English mixing? | ElevenLabs language detection switches the agent's language when the visitor switches. |
-| Is the check-in real? | It's a mock reception system for the demo. In production it would connect to DSO's visitor management or send the host a message. |
-| What about privacy? | It only asks for a first name. No phone numbers or IDs. The route goes to the phone by QR code, so no phone number is needed. |
-| What does it cost to run? | ElevenLabs usage per conversation plus a small web server. Per building, that is far less than a staffed desk at all hours. |
-| How would DSO scale it? | One agent with a knowledge base per building, on robots, screens, the phone line and WhatsApp. |
+| How does it know where it is? | Counts from the start, one landmark per step. People can correct it. Printed markers and the head camera confirm it. |
+| How does it tell visitor and operator apart? | By what they say and the language: short English reports are the operator. It asks when unsure. |
+| What if it is lost? | It stops the operator, asks what is next to the robot, and replans. It never guesses. |
+| What if the network drops? | The route lives on the robot. Two beeps mean stop; it repeats the step when it is back. |
+| Why not LiDAR? | It needs a site map set up with AgiBot. It is the next step, and only replaces the position source. |
+| Music and noise? | A noise gate that learns steady sound, place names as speech keywords, Scribe v3 Live. |
+| How deep is the ElevenLabs use? | Client tools, multi-voice, language detection with 10 presets, evaluation criteria and data collection, post-call webhook, 9 agent tests in the dashboard, pronunciation dictionary, soft-timeout fillers. |
+| Why that LLM? | We measured three inside ElevenLabs: DeepSeek was fastest and passed all 51 live cases; the others were slower or mislabelled languages. |

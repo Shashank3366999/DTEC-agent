@@ -8,6 +8,7 @@
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600&family=IBM+Plex+Sans+Arabic:wght@400;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/styles.css">
   <script src="/oasis.js"></script>
+  <script src="/nav.js"></script>
 </head>
 <body>
   <header class="bar">
@@ -17,12 +18,13 @@
   <main class="kiosk">
     <section class="panel talk">
       <h2>Talk to the guide</h2>
-      <p>Press the call button and speak in Arabic or English.</p>
+      <p>Press <strong>Start a call</strong> at the bottom left, allow the microphone, and speak. You can also type with the message button.</p>
+      <p class="small" id="how" hidden>Play both people. <strong>Visitor</strong>, in Arabic, English or Hindi: "I want a quiet place to take a call." <strong>Operator</strong>, in English: "Okay, that step is done." The robot remembers where it stopped between calls. Reload the page to put it back at the start.</p>
       <div id="widget-slot"></div>
       <p id="status" class="small"></p>
       <p id="no-agent" class="warn" hidden>No agent found. Run <code>python3 -m oasis_voice build</code> in the sdk folder, or add <code>?agent=YOUR_AGENT_ID</code> to the address.</p>
     </section>
-    <iframe class="embed" src="/screen" title="Reception screen"></iframe>
+    <iframe class="embed" id="side" src="about:blank" title="Live screen"></iframe>
   </main>
   <script>
   (async function () {
@@ -34,13 +36,16 @@
     } catch (e) {
       status.textContent = "profile.json not found: directions tools are off.";
     }
+    document.getElementById("side").src = profile && profile.floor ? "/live" : "/screen";
     const agent = new URLSearchParams(location.search).get("agent") || (profile && profile.agent_id);
     if (!agent) { document.getElementById("no-agent").hidden = false; return; }
 
     const w = document.createElement("elevenlabs-convai");
     w.setAttribute("agent-id", agent);
+    w.setAttribute("placement", "bottom-left"); // keeps the map visible
     if (profile) {
-      const tools = Oasis.makeClientTools(profile);
+      document.getElementById("how").hidden = !profile.floor;
+      const tools = Oasis.makeClientTools(profile); // the robot keeps its position between calls; reload to put it back at the start
       w.addEventListener("elevenlabs-convai:call", (event) => {
         event.detail.config.clientTools = tools;
       });
@@ -48,7 +53,7 @@
     }
     document.getElementById("widget-slot").append(w);
     const s = document.createElement("script");
-    s.src = "https://unpkg.com/@elevenlabs/convai-widget-embed";
+    s.src = "https://unpkg.com/@elevenlabs/convai-widget-embed@0.28.0";
     s.async = true;
     s.type = "text/javascript";
     document.head.append(s);

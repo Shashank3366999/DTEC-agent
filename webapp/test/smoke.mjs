@@ -15,7 +15,7 @@ const base = `http://localhost:${PORT}`;
 const dataFile = path.join(mkdtempSync(path.join(tmpdir(), "hercules-")), "data.json");
 
 const srv = spawn(process.execPath, [path.join(here, "..", "server.js")], {
-  env: { ...process.env, PORT: String(PORT), TOOL_SECRET: SECRET, DATA_FILE: dataFile, PUBLIC_URL: "" },
+  env: { ...process.env, PORT: String(PORT), TOOL_SECRET: SECRET, DATA_FILE: dataFile, PUBLIC_URL: "", ELEVENLABS_WEBHOOK_SECRET: "whsec_test" },
   stdio: ["ignore", "pipe", "inherit"],
 });
 await new Promise((ok) => srv.stdout.once("data", ok));
@@ -127,6 +127,36 @@ try {
     assert.equal(r.status, 200);
   });
 
+  await check("live route: needs the secret, is cleaned, shows in state", async () => {
+    assert.equal((await post("/api/nav", { walking: true }, "")).status, 401);
+    const r = await post("/api/nav", { walking: true, between: ["start", "junction"], path: ["start", "junction"], heading: 0, instruction: "Walk straight.", step: "x", extra: 1 });
+    assert.equal(r.status, 200);
+    const { nav } = await (await fetch(base + "/api/state")).json();
+    assert.equal(nav.instruction, "Walk straight.");
+    assert.deepEqual(nav.path, ["start", "junction"]);
+    assert.equal(nav.step, 0);
+    assert.equal(nav.extra, undefined);
+  });
+
+  await check("post-call webhook: signed only, lands in the trip log", async () => {
+    const { createHmac } = await import("node:crypto");
+    const payload = JSON.stringify({ type: "post_call_transcription", data: { conversation_id: "conv_1", agent_id: "a", metadata: { call_duration_secs: 61 },
+      analysis: { transcript_summary: "Took a visitor to the kitchen.", call_successful: "success",
+        evaluation_criteria_results: { no_invented_directions: { result: "success" }, stayed_brief: { result: "failure" } },
+        data_collection_results: { destination: { value: "kitchen" }, visitor_language: { value: "ar" }, unknown_requests: { value: "mosque, pharmacy" }, steps_given: { value: 2 }, destination_changed: { value: false } } } } });
+    const t = Math.floor(Date.now() / 1000);
+    const sig = `t=${t},v0=${createHmac("sha256", "whsec_test").update(`${t}.${payload}`).digest("hex")}`;
+    const bad = await fetch(base + "/api/elevenlabs/post-call", { method: "POST", headers: { "content-type": "application/json", "elevenlabs-signature": `t=${t},v0=deadbeef` }, body: payload });
+    assert.equal(bad.status, 401);
+    const good = await fetch(base + "/api/elevenlabs/post-call", { method: "POST", headers: { "content-type": "application/json", "elevenlabs-signature": sig }, body: payload });
+    assert.equal(good.status, 200);
+    const s = await (await fetch(base + "/api/state")).json();
+    assert.equal(s.trips[0].destination, "kitchen");
+    assert.equal(s.trips[0].unknown_requests, "mosque, pharmacy");
+    assert.equal(s.trips[0].scores.stayed_brief, "failure");
+    assert.equal(s.trips[0].steps_given, 2);
+  });
+
   await check("state lists check-ins and routes, newest first", async () => {
     const s = await (await fetch(base + "/api/state")).json();
     assert.equal(s.checkins.length, 2);
@@ -135,7 +165,7 @@ try {
   });
 
   await check("pages load", async () => {
-    for (const p of ["/", "/screen", "/kiosk", "/test", "/styles.css", "/screen.js", new URL(routeUrl).pathname]) {
+    for (const p of ["/", "/screen", "/live", "/walk", "/markers", "/nav.js", "/map.js", "/profile.json", "/kiosk", "/test", "/styles.css", "/screen.js", new URL(routeUrl).pathname]) {
       const r = await fetch(base + p);
       assert.equal(r.status, 200, p);
     }
@@ -153,6 +183,8 @@ try {
     assert.equal(r.status, 200);
     const s = await (await fetch(base + "/api/state")).json();
     assert.equal(s.checkins.length + s.routes.length, 0);
+    assert.equal(s.nav, null);
+    assert.equal(s.trips.length, 0);
   });
 
   ctrl.abort();

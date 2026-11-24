@@ -59,6 +59,9 @@ def validate(p):
         hours = place.get("hours")
         if hours and hours != "24h" and not _hours_ok(hours):
             problems.append(f"{where}: hours must be '24h' or 'HH:MM-HH:MM', got {hours!r}")
+    if "floor" in p:
+        from .navigator import check_floor
+        problems += check_floor(p)
     return problems
 
 

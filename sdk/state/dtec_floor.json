@@ -1,0 +1,78 @@
+{
+  "agent_id": "agent_8901m8739kh0fna9wssypk694eq8",
+  "tools": {
+    "find_place": {
+      "id": "tool_7501m8739gzsfp6bwebb8c2c0nsn",
+      "hash": "58b3ef0ded42"
+    },
+    "start_route": {
+      "id": "tool_0601m874kg1bfr38kjg2rc6mqv26",
+      "hash": "d7f6af8cf4a1"
+    },
+    "step_done": {
+      "id": "tool_7601m8739hqnfdw8jga7evr17yjt",
+      "hash": "8912604395b8"
+    },
+    "update_position": {
+      "id": "tool_1401m874kgesffb881e1hcymxaj8",
+      "hash": "e7c7f0ba63b0"
+    },
+    "route_status": {
+      "id": "tool_3201m8739jezet2t9d3w002psjqq",
+      "hash": "48e2b343a831"
+    },
+    "cancel_route": {
+      "id": "tool_6301m8739jt8ehjv8qaxp340agcz",
+      "hash": "c876812788d4"
+    },
+    "request_human": {
+      "id": "tool_7201m8739k5nendrn7sarn061ggm",
+      "hash": "b6896907bade"
+    }
+  },
+  "pronunciation": {
+    "hash": "13c94cad0ccc",
+    "locator": {
+      "pronunciation_dictionary_id": "e5couCrlgku3ehHkiRMm",
+      "version_id": "6AT3DsNKDnNNvH5Ci10J"
+    }
+  },
+  "eltests": {
+    "Vague Arabic request -> find_place, not start_route": {
+      "id": "test_9401m876jkvpeg4rsp0y99qt8qfj",
+      "hash": "8b2bb76e0701"
+    },
+    "Position in the request -> start_at": {
+      "id": "test_5301m876jm7sersa1fta8mgj6etc",
+      "hash": "91dc7566a903"
+    },
+    "Operator says done -> step_done with the step number": {
+      "id": "test_5601m876jmpcf69v4jb2z2fvv8nz",
+      "hash": "85e3ca95a347"
+    },
+    "Visitor's thank-you is NOT a finished step": {
+      "id": "test_2301m876jn27f3rt08vhmjgd1657",
+      "hash": "379437f1e3f8"
+    },
+    "Says the operator step word for word, nothing added": {
+      "id": "test_1801m876jnemfk2ryh65han8shk1",
+      "hash": "31760d606ac9"
+    },
+    "Unknown place: says so, offers a person, does not guess": {
+      "id": "test_0501m876jnt3eda8tdwcvk808bm8",
+      "hash": "db1941fccae5"
+    },
+    "Second person mid-route: stop first, both people told": {
+      "id": "test_4301m876jp68erb9vzeg25ma037j",
+      "hash": "445a27f6d73f"
+    },
+    "Stop! is obeyed at once": {
+      "id": "test_1501m876sf88ff0th7x5b36z7sf0",
+      "hash": "56219cc04cc9"
+    },
+    "Spanish visitor is answered in Spanish, confirmed first": {
+      "id": "test_9801m876jpwdehmanngq56hsngf0",
+      "hash": "cae39528dfb8"
+    }
+  }
+}

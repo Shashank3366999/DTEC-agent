@@ -1,75 +1,57 @@
-# Robot checklist (for the person at the robot)
+# Robot checklist: blind navigation
 
-The robot is only the ears and mouth. All the thinking happens in the ElevenLabs agent, which the remote team can change live. **You never need to change code on the robot.** You only run the bridge.
+**You never need to change code on the robot.** You run the bridge; MangoBot moves the robot.
 
-## Bring to every robot slot
+## Before the slot
 
-- [ ] Laptop, charged, with the latest copy of this repo (`git pull`)
-- [ ] The **agent ID** (from the remote team)
-- [ ] The **reception screen** link open on the laptop (`<web app>/screen`)
-- [ ] Phone, to scan the QR code and to film
-- [ ] A video call open with the remote team, so they can fix the agent live
-- [ ] The demo script (`../pitch/demo_script.md`), printed or on your phone
+- [ ] `dist/oasis_voice_robot.zip` built **after** the real map and after `build` (it must contain `state/dtec_floor.json`)
+- [ ] `/live` open on a laptop, web app awake
+- [ ] Markers stuck up, if allowed
+- [ ] Robot on the start spot, facing map north
 
-## Ask at the first robot session
+## Ask MangoBot
 
-- [ ] What is the robot's **wake word**?
-- [ ] Where will the robot **stand** during the demo? (All our directions start from there.)
-- [ ] Is there an **external microphone** for the noisy room?
-- [ ] What is the **AimDK path** for the setup command?
-- [ ] Does the container on **PC2** have internet?
-- [ ] Ask the teams who went before you what went wrong for them.
+- [ ] Wake word, AimDK path, internet on PC2, external mic
+- [ ] OK to put opencv-python-headless into our own `pylib` folder? (`setup` tries; if it fails the robot counts steps)
 
-## Run it (on robot PC2, inside the container MangoBot gives you)
-
-Copy the repo's `sdk` folder onto PC2 (inside `/home/agi`), then:
+## Run (full steps: QUICKSTART.md in the zip)
 
 ```bash
-pip3 install websocket-client numpy
-source /opt/ros/humble/setup.bash && source <aimdk path>/install/setup.bash
-cd /home/agi/sdk
-export WEBAPP_URL=<reception screen web app URL>   # so check-in, route and operator reach the screen
-python3 -m oasis_voice bridge
+ssh run@<robot address>            # password in the organisers' email
+cd ~/hercules/oasis_voice_robot
+./run_robot.sh setup               # once
+./run_robot.sh doctor              # fix every FIX line
+./run_robot.sh takeover            # Lumi quiet, volume up
+./run_robot.sh
+./run_robot.sh restore             # before you leave
 ```
 
-The agent ID is read from `sdk/state/dtec_navigator.json`; no API key is needed on the robot.
+- No wake word: the bridge listens to the raw microphone. The robot cannot be interrupted while it speaks (the mic is muted then).
+- `camera markers: on` or `off ... Counting steps instead`. If `on` but no `marker:` line appears near a marker, ask MangoBot for the camera topic and set `CAMERA_TOPIC`.
+- **Restart the bridge at the start spot before every route.** It assumes the robot is there.
 
-**Fallback** (if the SDK fails to start): `export ELEVENLABS_AGENT_ID=agent_4001m86cac97egtb840g9whcrbz3` then `python3 elevenlabs_robot_bridge.py` from this folder. It talks, but the place lookup and actions won't run.
+## Brief the operator (30 seconds)
 
-Then say the wake word once and talk normally.
+"It talks to you in English and starts with 'Operator'. Do exactly that. When the step is finished say **"Okay, that step is done"** (a lone "done" is sometimes slow or missed under music). If it asks something, answer short: 'I passed the kitchen'. Say **say again** to repeat. Wait until it finishes a sentence before you speak: it cannot hear while it talks. Two low beeps: stop and wait."
 
-Good signs in the output:
-- `speaker focus: yes`
-- `connected. agent speaks pcm_16000 and listens to pcm_16000`
-- `visitor: ...`, `tool lookup_place ...`, `robot: ...` and `latency 0.9s` lines as you talk
+## Filming
 
-## If something goes wrong
+- [ ] Find an organiser first: they bring the music and the new destination
+- [ ] Visitor, robot **and operator** in the shot
+- [ ] Three routes, one take each, cuts only between them, 3 minutes in total
+
+## Problems
 
 | What you see | Fix |
 |---|---|
-| The robot interrupts itself | Stop it (Ctrl+C) and run again with `HALF_DUPLEX=1 python3 -m oasis_voice bridge` |
-| Speaker stays silent, or `ERROR: set the agent's output audio to PCM 16000 Hz` | Ask the remote team to set the agent's output audio to PCM 16000 Hz |
-| `WARNING: set the agent's input audio to PCM 16000 Hz` | Ask the remote team to set the input audio to PCM 16000 Hz |
-| `cannot reach ElevenLabs` | No internet in the container. Tell the MangoBot engineer |
-| `speaker focus: NO` | Ask the MangoBot engineer to check the agent module |
-| It can't hear people in the room | Ask the engineer for the external mic. To force it: `MIC_STREAM=2` |
-| Background chatter gets picked up | Run with `NOISE_MIN_RMS=600` (higher = stricter) |
-| Quiet visitors are not heard | Run with `NOISE_MIN_RMS=200`, or `NOISE_GATE=0` to switch the gate off |
-| `tool ... screen is offline` | `WEBAPP_URL` not set or wrong. Directions still work; check-in/route/operator need the screen |
-| You want to see everything | Add `VERBOSE=1` |
-| The answer is wrong or too long | Tell the remote team. They fix the agent, then you just ask again (no restart needed for a new conversation) |
+| Interrupts itself | `HALF_DUPLEX=1` |
+| Music or chatter gets in | `NOISE_MIN_RMS=600` |
+| Quiet visitors not heard | `NOISE_MIN_RMS=200` or `NOISE_GATE=0` |
+| `speaker focus: NO` | MangoBot engineer: agent module |
+| `cannot reach ElevenLabs` | No internet in the container |
+| Wrong place | "Stop. We are at the X" |
+| A marker counts too early | `MARKER_MIN_PX=100`, or `MARKERS=0` to turn them off |
 
-## Robot rules (from MangoBot and AgiBot)
+## Robot rules (MangoBot and AgiBot)
 
-- Our code runs only in the container on PC2. **Never on PC1.**
-- Don't touch the operating system, drivers, DDS, firmware, power or hardware. No factory reset.
-- Save files only under `/home/agi`, never in `aimdk*`. Keep a copy on your laptop.
-- We never move the robot. MangoBot controls all movement.
-- If anything looks wrong, stop and call the MangoBot engineer.
-
-## Filming the demo on the robot
-
-- [ ] Remote team resets the reception screen first (`/api/reset`)
-- [ ] The camera sees the robot **and** the reception screen
-- [ ] Do one practice run, then film **one unedited take, max 2 minutes**
-- [ ] Scan the QR code with a phone on camera when the route appears
+Code only in the container on PC2, **never on PC1**. Don't touch the OS, drivers, DDS, firmware, power or hardware. Save only under `/home/agi`, never in `aimdk*`. Never publish to a motion topic. If anything looks wrong, stop and call the engineer.

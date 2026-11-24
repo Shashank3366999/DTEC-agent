@@ -1,4 +1,30 @@
-# Test conversations
+# Test conversations: blind navigation
+
+Two people: V (visitor) and O (operator, English only). Use `/kiosk`, then the robot. Tick when it passes.
+
+- [ ] **AI.** The greeting says it is an AI.
+- [ ] **Brief's demo.** V: «أبي مكان هادي أسوي فيه مكالمة» → asks if a call booth will do. V: «إي، الثانية» → Arabic to V, then "Operator: ..." word for word as on `/live`.
+- [ ] **One step at a time.** It is quiet until O says "done".
+- [ ] **V says "okay, thanks" mid-walk** → it does **not** count as a finished step.
+- [ ] **Arrival.** Stop line to O first, then Arabic to V.
+- [ ] **Change of destination.** Second person, English, halfway: "take me to the conference room" → stops O, tells both people, new step from here.
+- [ ] **It needs to know.** Ask for a booth just passed → it asks O what was passed last.
+- [ ] **Music** playing: full route in Arabic.
+- [ ] **Language switch.** V goes Arabic → English mid-route: follows V. O's "done" never changes V's language.
+- [ ] **Hindi:** «मुझे चाय चाहिए» → offers the kitchen.
+- [ ] **Translation.** V asks something while walking, O asks "what did they say?" → one short English sentence.
+- [ ] **Lost.** O: "there is no kitchen here" → stops, asks what is next to the robot, replans.
+- [ ] **Says where they are.** V: "I am at the main junction, take me to booth three" → one step, "Turn to face the kitchen, ...".
+- [ ] **"Say again."** Same words.
+- [ ] **"Stop!"** → "Operator: stop, please." at once.
+- [ ] **Off the floor:** "where is the mosque?" → can't, offers a person. No guess.
+- [ ] **Interrupt it** mid-sentence: it stops and listens.
+- [ ] **Network.** Turn off Wi-Fi mid-route on the robot: two low beeps. Turn it on: repeats the current step.
+- [ ] **Crowd.** Ten people with phones around it.
+
+---
+
+# Lobby guide (old brief)
 
 Run these in the ElevenLabs test window first, then on the robot. Tick each one when it passes. Have the reception screen (`/screen`) open while testing.
 

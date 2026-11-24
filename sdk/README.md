@@ -8,6 +8,26 @@ profile (JSON data) ──build──▶ ElevenLabs agent (prompt, voice, Arabic
                      ──export─▶ webapp/public/profile.json (the laptop demo runs the same tools)
 ```
 
+## Blind navigation (the new brief, default profile `profiles/dtec_floor.json`)
+
+| Part | File |
+|---|---|
+| Floor map: spots, straight walks, start, place names in three languages | `profiles/dtec_floor.json` |
+| Route planner: position, steps, replanning. No AI, same input gives the same words | `oasis_voice/navigator.py` |
+| Tools: `find_place`, `start_route`, `step_done`, `update_position`, `route_status`, `cancel_route`, `request_human` | `oasis_voice/actions.py` |
+| Two-person rules for the agent | `oasis_voice/prompt.py` |
+| Camera markers (optional, only reads the camera) | `oasis_voice/sense.py` |
+| `routes`, `walk`: check the map without the agent | `oasis_voice/walk.py` |
+| Tests, including an operator who only knows the spoken words, 500 trips with changes | `tests/test_navigation.py` |
+| ElevenLabs agent tests (run inside ElevenLabs, visible in the dashboard) | `tests/elevenlabs_tests.json`, `oasis_voice/eltest.py` |
+
+- A step is one straight walk that ends at something the operator can see. Steps are numbered, so a "done" heard twice can't skip one.
+- Destination changed mid-walk: the planner works out the new step for every part of the walk the robot could be on. If they agree it goes on; if not it asks what was passed last.
+- Network drop: the route lives on the robot. Two low beeps mean stop; on reconnect the agent repeats the current step.
+- Music: the noise gate learns a steady level and closes on it, with a cap so a person close by always gets through.
+
+Everything below is the earlier lobby guide (`--profile profiles/dtec_navigator.json`); the commands are the same.
+
 ## What it does (the team's checklist)
 
 | Goal | How |
@@ -48,7 +68,7 @@ python3 -m oasis_voice prompt                      # see the agent's instruction
 python3 -m oasis_voice build                       # update the ElevenLabs agent (needs the key in .env)
 python3 -m oasis_voice chat                        # type to the agent; tools run locally
 python3 -m oasis_voice chat --say "Where can I pray?"
-python3 -m unittest discover -s tests              # 22 tests, no network
+python3 -m unittest discover -s tests              # all tests, no network
 ```
 
 `chat` and `bridge` need `pip3 install websocket-client`. Every command takes `--profile path/to/profile.json`.
@@ -65,7 +85,7 @@ export WEBAPP_URL=<reception screen web app URL>     # e.g. https://dtec-agent.o
 python3 -m oasis_voice bridge
 ```
 
-No API key is needed on the robot (the agent is public). Options: `HALF_DUPLEX=1` (robot interrupts itself), `MIC_STREAM=2` (external mic), `NOISE_MIN_RMS=600` (very loud room), `NOISE_GATE=0` (gate off), `VERBOSE=1`.
+No API key is needed on the robot (the agent is public). Options: `HALF_DUPLEX=1` (robot interrupts itself), `MIC_STREAM=<id from the log>`, `NOISE_MIN_RMS=600` (very loud room), `NOISE_GATE=0` (gate off), `VERBOSE=1`.
 
 You will see lines like:
 ```

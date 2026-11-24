@@ -1,16 +1,14 @@
 # Submission
 
-The form needs: project link, 100 words, demo video, up to 3 slides, and one unedited robot take (max 2 minutes).
+Project link, 100 words, demo video (three routes, up to 3 minutes, cuts only between routes), up to 3 slides. The deadline comes in the organisers' next update. Late submissions are not judged.
 
 ## Project name
 
-DSO Visitor Guide by Team Hercules
+Dtec Floor Guide by Team Hercules (check the team name after the reshuffle)
 
 ## 100-word description
 
-> Check the word count again after any edit.
-
-First-time visitors at Dubai Silicon Oasis struggle to find the right building and floor. Our DSO Visitor Guide gives the lobby robot a voice. Built on ElevenLabs Agents, it talks in Arabic and English, follows visitors when they switch language, and asks when a request is unclear. It gives short directions from routes our team walked inside Dtec, and says "I don't know" instead of guessing. It also acts: it checks visitors in with their host and sends the route to their phone by QR code. The same agent can run on kiosks, screens and phone lines across DSO.
+A visitor knows where they want to go. The operator can walk the robot, but doesn't know the way or speak the visitor's language. Our ElevenLabs agent connects them. It understands Arabic, English and Hindi, asks when a request is vague, and talks the operator there in English, step by step. The AI never invents a direction: a planner on the robot decides every step from a map of the floor. When someone changes the destination halfway, it plans again from where the robot stands and tells everyone. It calls the stop, confirms the arrival, and never guesses.
 
 ## Project link
 

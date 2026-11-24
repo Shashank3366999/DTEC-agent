@@ -9,9 +9,14 @@ Tools
   check_in_visitor     tells reception a visitor arrived   -> web app /api/check-in
   send_route_to_phone  shows a route QR on the screen      -> web app /api/send-route
   request_operator     calls a human at reception          -> web app /api/operator
+
+Profiles with a "floor" map (blind navigation) get NAV_TOOL_SPECS instead: the route planner in
+navigator.py, plus request_human. The live route is shown on the screen -> web app /api/nav
 """
 
 import json
+import queue
+import threading
 import urllib.error
 import urllib.request
 
@@ -70,8 +75,75 @@ TOOL_SPECS = [
 ]
 
 
+_PLACE_LANG = "Language code of the person asking, e.g. ar, en, hi."
+
+# "config" is merged into the ElevenLabs tool settings.
+NAV_TOOL_SPECS = [
+    {
+        "name": "find_place",
+        "description": "Understand which place on this floor someone wants. ALWAYS call this first for a new request. "
+                       "It does not start walking.",
+        "parameters": {"query": "What they asked for, in their own words and language.", "language": _PLACE_LANG},
+        "required": ["query", "language"],
+        "action": None,
+    },
+    {
+        "name": "start_route",
+        "description": "Start guiding to a place, or change the destination on the way. Call it when the place is clear.",
+        "parameters": {
+            "place_id": "The place_id from find_place.",
+            "language": "Language code of the person who asked for THIS place, e.g. ar, en, hi.",
+            "last_passed": "Only after start_route answered need_position: the last_passed id the operator named. Else empty.",
+            "same_person": "yes if the visitor who is being guided changed their own mind. no if another person asks.",
+            "start_at": "Where they say they or the robot are NOW, in their words, e.g. main junction. Empty if nobody said it.",
+        },
+        "required": ["place_id", "language"],
+        "action": None,
+        "config": {"pre_tool_speech": "off"},
+    },
+    {
+        "name": "step_done",
+        "description": "The OPERATOR says the current step is finished (done, okay, I'm there, reached). Returns the next step.",
+        "parameters": {"step": "The step number of the instruction that was finished, e.g. 2."},
+        "required": ["step"],
+        "action": None,
+        "config": {"pre_tool_speech": "off"},
+    },
+    {
+        "name": "update_position",
+        "description": "Someone says where the robot is now, during a trip or before they said where to go. Replans from there.",
+        "parameters": {
+            "at": "The place right next to the robot, in their words, e.g. kitchen.",
+            "facing": "The place the robot is facing, if they said it. Else empty.",
+        },
+        "required": ["at"],
+        "action": None,
+        "config": {"pre_tool_speech": "off"},
+    },
+    {
+        "name": "route_status",
+        "description": "Get the current step again, e.g. when the operator did not hear it or anyone asks what is happening.",
+        "parameters": {}, "required": [], "action": None, "config": {"pre_tool_speech": "off"},
+    },
+    {
+        "name": "cancel_route",
+        "description": "Stop guiding, because the visitor no longer wants to go.",
+        "parameters": {}, "required": [], "action": None, "config": {"pre_tool_speech": "off"},
+    },
+    {
+        "name": "request_human",
+        "description": "Alert an organiser on the screen. Use when someone asks for a person, is upset, or needs help you cannot give.",
+        "parameters": {"reason": "One short sentence: why a person is needed.", "language": _PLACE_LANG},
+        "required": ["reason", "language"],
+        "action": "operator",
+    },
+]
+
+
 def enabled_tools(profile):
     actions = profile.get("actions", {})
+    if profile.get("floor"):
+        return [t for t in NAV_TOOL_SPECS if t["action"] is None or actions.get(t["action"])]
     return [t for t in TOOL_SPECS if t["action"] is None or actions.get(t["action"])]
 
 
@@ -84,9 +156,19 @@ class ToolRouter:
         self.webapp_url = (webapp_url or "").rstrip("/")
         self.tool_secret = tool_secret or ""
         self.log = log
+        self.nav = None
+        if profile.get("floor"):
+            from .navigator import Navigator
+            self.nav = Navigator(profile)
+            self._nav_lock = threading.RLock()
+            self._nav_out = queue.Queue()
+            threading.Thread(target=self._nav_sender, daemon=True).start()
+            self._show()
 
     def handle(self, name, params):
         params = params or {}
+        if self.nav:
+            return self._handle_nav(name, params)
         try:
             fn = {
                 "lookup_place": self._lookup,
@@ -101,6 +183,65 @@ class ToolRouter:
         except Exception as e:  # never leave the agent waiting
             self.log(f"tool {name} failed: {e}")
             return json.dumps({"ok": False, "message": "That didn't work. Send the visitor to reception."}), True
+
+    # ---------------------------------------------------------------- blind navigation
+    def _handle_nav(self, name, p):
+        nav = self.nav
+        try:
+            with self._nav_lock:
+                if name == "find_place":
+                    out = nav.find(p.get("query", ""), p.get("language", "en"))
+                elif name == "start_route":
+                    out = nav.start_route(p.get("place_id", ""), p.get("language", "en"), p.get("last_passed", ""),
+                                          str(p.get("same_person", "")).lower() == "yes", p.get("start_at", ""))
+                elif name == "step_done":
+                    out = nav.step_done(p.get("step"))
+                elif name == "update_position":
+                    out = nav.update_position(p.get("at", ""), p.get("facing", ""))
+                elif name == "route_status":
+                    out = nav.status()
+                elif name == "cancel_route":
+                    out = nav.cancel()
+                elif name == "request_human":
+                    out = self._human(p)
+                else:
+                    return json.dumps({"status": "error", "say": f"Unknown tool {name}"}), True
+                self._show(out)
+            return json.dumps(out, ensure_ascii=False), False
+        except Exception as e:  # never leave the agent (and the operator) waiting
+            self.log(f"tool {name} failed: {e}")
+            return json.dumps({"status": "error", "say_operator": "Operator: stop, please.",
+                               "say": "Something failed. Say this, then call request_human."}), True
+
+    def marker(self, node_id):
+        """The camera sees one of our printed markers. Returns the tool-style result, or None if it changes nothing."""
+        with self._nav_lock:
+            if node_id not in self.nav.nodes or (self.nav.at == node_id and self.nav.source == "marker"):
+                return None
+            out = self.nav.update_position(node_id, source="marker")
+            self._show(out)
+            return out
+
+    def _human(self, p):
+        op = self.profile["operator"]
+        body = {"reason": p.get("reason", ""), "visitor_name": "", "language": p.get("language", "en")}
+        sent = self._post("/api/operator", body, offline_message="").get("alerted")
+        return {"status": "ok", "alerted": bool(sent),
+                "say": ("An organiser has been alerted on the screen. " if sent else "The screen is offline, nobody was alerted. ")
+                       + f"Tell the visitor: for a person, {text_for(op['where'], 'en')}. The operator stays stopped."}
+
+    def _show(self, last=None):
+        """Send the live route to the screen without holding up the conversation."""
+        self._nav_out.put({**self.nav.snapshot(),
+                           "say_operator": (last or {}).get("say_operator", ""),
+                           "say_visitor": (last or {}).get("say_visitor", ""),
+                           "status": (last or {}).get("status", "")})
+
+    def _nav_sender(self):
+        while True:
+            body = self._nav_out.get()
+            if self.webapp_url:
+                self._post("/api/nav", body, offline_message="")
 
     # ---------------------------------------------------------------- tools
     def _lookup(self, p):

@@ -1,0 +1,333 @@
+{
+  "_comment": "Tests that run INSIDE ElevenLabs (dashboard > Tests). python3 -m oasis_voice eltest creates them once and runs them. Each 'llm' test replays a chat and judges the next reply; each 'tool' test checks which tool is called and with what.",
+  "tests": [
+    {
+      "type": "tool",
+      "name": "Vague Arabic request -> find_place, not start_route",
+      "chat": [
+        [
+          "user",
+          "أبي مكان هادي أسوي فيه مكالمة"
+        ]
+      ],
+      "tool": "find_place",
+      "params": {
+        "language": {
+          "type": "regex",
+          "pattern": "^ar"
+        }
+      }
+    },
+    {
+      "type": "tool",
+      "name": "Position in the request -> start_at",
+      "chat": [
+        [
+          "user",
+          "I am at the main junction, take me to the third call booth"
+        ],
+        [
+          "agent",
+          "",
+          [
+            [
+              "find_place",
+              {
+                "query": "third call booth",
+                "language": "en"
+              },
+              "{\"status\": \"found\", \"place_id\": \"booth_3\", \"name\": \"third call booth\", \"say\": \"Call start_route now.\"}"
+            ]
+          ]
+        ]
+      ],
+      "tool": "start_route",
+      "params": {
+        "place_id": {
+          "type": "exact",
+          "expected_value": "booth_3"
+        },
+        "start_at": {
+          "type": "llm",
+          "description": "names the main junction"
+        }
+      }
+    },
+    {
+      "type": "tool",
+      "name": "Operator says done -> step_done with the step number",
+      "chat": [
+        [
+          "user",
+          "Take me to the kitchen"
+        ],
+        [
+          "agent",
+          "Okay, we're going to the kitchen. Please walk with us. Operator: Walk straight about 6 metres, and stop at the main junction.",
+          [
+            [
+              "find_place",
+              {
+                "query": "kitchen",
+                "language": "en"
+              },
+              "{\"status\": \"found\", \"place_id\": \"kitchen\", \"name\": \"kitchen\", \"say\": \"Call start_route now.\"}"
+            ],
+            [
+              "start_route",
+              {
+                "place_id": "kitchen",
+                "language": "en"
+              },
+              "{\"status\": \"started\", \"step\": 1, \"steps_left\": 2, \"destination\": \"kitchen\", \"visitor_language\": \"en\", \"say_operator\": \"Operator: Walk straight about 6 metres, and stop at the main junction.\", \"say_in_order\": [\"Okay, we're going to the kitchen. Please walk with us.\", \"Operator: Walk straight about 6 metres, and stop at the main junction.\"], \"say_visitor\": \"Okay, we're going to the kitchen. Please walk with us.\"}"
+            ]
+          ]
+        ],
+        [
+          "user",
+          "Okay, that step is done."
+        ]
+      ],
+      "tool": "step_done",
+      "params": {
+        "step": {
+          "type": "exact",
+          "expected_value": "1"
+        }
+      }
+    },
+    {
+      "type": "tool",
+      "name": "Visitor's thank-you is NOT a finished step",
+      "chat": [
+        [
+          "user",
+          "خذني المطبخ"
+        ],
+        [
+          "agent",
+          "تمام، بنروح إلى المطبخ. تفضّل امشِ معنا. Operator: Walk straight about 6 metres, and stop at the main junction.",
+          [
+            [
+              "find_place",
+              {
+                "query": "المطبخ",
+                "language": "ar"
+              },
+              "{\"status\": \"found\", \"place_id\": \"kitchen\", \"name\": \"المطبخ\", \"say\": \"Call start_route now.\"}"
+            ],
+            [
+              "start_route",
+              {
+                "place_id": "kitchen",
+                "language": "ar"
+              },
+              "{\"status\": \"started\", \"step\": 1, \"steps_left\": 2, \"destination\": \"kitchen\", \"visitor_language\": \"ar\", \"say_operator\": \"Operator: Walk straight about 6 metres, and stop at the main junction.\", \"say_in_order\": [\"تمام، بنروح إلى المطبخ. تفضّل امشِ معنا.\", \"Operator: Walk straight about 6 metres, and stop at the main junction.\"], \"say_visitor\": \"تمام، بنروح إلى المطبخ. تفضّل امشِ معنا.\"}"
+            ]
+          ]
+        ],
+        [
+          "user",
+          "طيب، شكراً"
+        ]
+      ],
+      "tool": "step_done",
+      "absent": true
+    },
+    {
+      "type": "llm",
+      "name": "Says the operator step word for word, nothing added",
+      "chat": [
+        [
+          "user",
+          "Take me to the kitchen"
+        ],
+        [
+          "agent",
+          "",
+          [
+            [
+              "find_place",
+              {
+                "query": "kitchen",
+                "language": "en"
+              },
+              "{\"status\": \"found\", \"place_id\": \"kitchen\", \"name\": \"kitchen\", \"say\": \"Call start_route now.\"}"
+            ],
+            [
+              "start_route",
+              {
+                "place_id": "kitchen",
+                "language": "en"
+              },
+              "{\"status\": \"started\", \"step\": 1, \"steps_left\": 2, \"destination\": \"kitchen\", \"visitor_language\": \"en\", \"say_operator\": \"Operator: Walk straight about 6 metres, and stop at the main junction.\", \"say_in_order\": [\"Okay, we're going to the kitchen. Please walk with us.\", \"Operator: Walk straight about 6 metres, and stop at the main junction.\"], \"say_visitor\": \"Okay, we're going to the kitchen. Please walk with us.\"}"
+            ]
+          ]
+        ]
+      ],
+      "success": "The reply contains the visitor line and then the operator line 'Operator: Walk straight about 6 metres, and stop at the main junction.' word for word (optionally inside <Operator> tags, and 'six' for '6' is fine). It adds no other direction, distance or landmark.",
+      "ok": [
+        "Okay, we're going to the kitchen. Please walk with us. Operator: Walk straight about 6 metres, and stop at the main junction."
+      ],
+      "bad": [
+        "Okay! Operator: walk straight 6 metres, turn left at the junction and stop at the kitchen.",
+        "Sure, follow me to the kitchen."
+      ]
+    },
+    {
+      "type": "llm",
+      "name": "Unknown place: says so, offers a person, does not guess",
+      "chat": [
+        [
+          "user",
+          "وين المسجد؟"
+        ],
+        [
+          "agent",
+          "",
+          [
+            [
+              "find_place",
+              {
+                "query": "المسجد",
+                "language": "ar"
+              },
+              "{\"status\": \"not_found\", \"say\": \"This place is not on this floor's map. Say so, offer the places you know or a person (request_human). Do not guess.\"}"
+            ]
+          ]
+        ]
+      ],
+      "success": "The reply is in Arabic, says the mosque is not on this floor or not known, and offers the known places or a person. It does not give directions to a mosque and contains no 'Operator:' line.",
+      "ok": [
+        "ما عندي مسجد في هالطابق. أقدر أوصلك للمطبخ أو غرفة الاجتماعات، أو أنادي لك أحد من المنظمين؟"
+      ],
+      "bad": [
+        "المسجد في الطابق الأرضي بجانب المدخل.",
+        "Operator: turn left and walk to the mosque."
+      ]
+    },
+    {
+      "type": "llm",
+      "name": "Second person mid-route: stop first, both people told",
+      "chat": [
+        [
+          "user",
+          "خذني الكابينة الثانية"
+        ],
+        [
+          "agent",
+          "تمام، بنروح إلى كابينة المكالمات الثانية. تفضّل امشِ معنا. Operator: Walk straight about 6 metres, and stop at the main junction."
+        ],
+        [
+          "user",
+          "Okay, that step is done."
+        ],
+        [
+          "agent",
+          "Operator: Turn left, then walk straight about 10 metres, past the kitchen on your left, and stop at the second call booth."
+        ],
+        [
+          "user",
+          "Sorry, can you take me to the conference room?"
+        ],
+        [
+          "agent",
+          "",
+          [
+            [
+              "find_place",
+              {
+                "query": "conference room",
+                "language": "en"
+              },
+              "{\"status\": \"found\", \"place_id\": \"conference_room\", \"name\": \"conference room\", \"say\": \"Call start_route now.\"}"
+            ],
+            [
+              "start_route",
+              {
+                "place_id": "conference_room",
+                "language": "en",
+                "same_person": "no"
+              },
+              "{\"status\": \"changed\", \"step\": 3, \"steps_left\": 1, \"destination\": \"conference room\", \"visitor_language\": \"en\", \"say_operator\": \"Operator: stop, please. New destination: the conference room. Turn around, then walk back, and stop at the conference room.\", \"say_visitor\": \"Okay, we're going to the conference room. Please walk with us.\", \"say_in_order\": [\"Operator: stop, please.\", \"تغيّرت الوجهة: بنروح أول إلى قاعة المؤتمرات، وبعدها أقدر أوصلك إلى كابينة المكالمات الثانية.\", \"Okay, we're going to the conference room. Please walk with us.\", \"Operator: New destination: the conference room. Turn around, then walk back, and stop at the conference room.\"], \"changed_from\": \"second call booth\", \"first_visitor_language\": \"ar\", \"say_first_visitor\": \"تغيّرت الوجهة: بنروح أول إلى قاعة المؤتمرات، وبعدها أقدر أوصلك إلى كابينة المكالمات الثانية.\"}"
+            ]
+          ]
+        ]
+      ],
+      "success": "The reply starts with 'Operator: stop, please.' (tags allowed), then tells the first visitor in Arabic about the change, then the new person in English, and ends with the new operator step 'Turn around, then walk back, and stop at the conference room' word for word.",
+      "ok": [
+        "Operator: stop, please. تغيّرت الوجهة: بنروح أول إلى قاعة المؤتمرات، وبعدها أقدر أوصلك إلى كابينة المكالمات الثانية. Okay, we're going to the conference room. Please walk with us. Operator: New destination: the conference room. Turn around, then walk back, and stop at the conference room."
+      ],
+      "bad": [
+        "Okay, we're going to the conference room. Operator: Turn around and walk back.",
+        "Operator: keep going to the second call booth, then we go to the conference room."
+      ]
+    },
+    {
+      "type": "llm",
+      "name": "Stop! is obeyed at once",
+      "chat": [
+        [
+          "user",
+          "Take me to the team tables"
+        ],
+        [
+          "agent",
+          "Okay, we're going to the team tables. Please walk with us. Operator: Walk straight about 6 metres, and stop at the main junction."
+        ],
+        [
+          "user",
+          "Stop! Stop!"
+        ]
+      ],
+      "success": "The reply BEGINS with 'Operator: stop, please.' (voice tags allowed around it). Anything after it is fine. It fails only if something else comes before the stop line, or the stop line is missing.",
+      "ok": [
+        "Operator: stop, please."
+      ],
+      "bad": [
+        "Is everything okay? Operator: keep walking.",
+        "We are nearly there."
+      ]
+    },
+    {
+      "type": "llm",
+      "name": "Spanish visitor is answered in Spanish, confirmed first",
+      "chat": [
+        [
+          "user",
+          "Hola, tengo hambre, ¿dónde se puede comer?"
+        ],
+        [
+          "agent",
+          "",
+          [
+            [
+              "find_place",
+              {
+                "query": "tengo hambre, dónde comer",
+                "language": "es"
+              },
+              "{\"status\": \"retry_in_english\", \"say\": \"Place names are stored in English only for this language. Call find_place again NOW with the request translated into English (e.g. 'conference room'). Do not say anything in between.\"}"
+            ],
+            [
+              "find_place",
+              {
+                "query": "I'm hungry, where can I eat",
+                "language": "es"
+              },
+              "{\"status\": \"ask_first\", \"place_id\": \"kitchen\", \"name\": \"kitchen\", \"say_in_order\": [\"¿Le llevo a kitchen?\"], \"say\": \"They did not name a place, so this is a guess. Say the question and wait. Call start_route only after they say yes.\"}"
+            ]
+          ]
+        ]
+      ],
+      "success": "The reply is one short question in Spanish asking whether to take them to the kitchen (la cocina). It does not start the route and has no 'Operator:' line.",
+      "ok": [
+        "¿Le llevo a la cocina?"
+      ],
+      "bad": [
+        "De acuerdo, vamos a la cocina. Operator: Walk straight about 6 metres.",
+        "Shall I take you to the kitchen?"
+      ]
+    }
+  ]
+}

@@ -1,3 +1,5 @@
+> **Old brief** (lobby guide). For the new brief use [COLLECT_FLOOR_MAP.md](COLLECT_FLOOR_MAP.md).
+
 # Collect directions inside Dtec (for the person on site)
 
 Nothing about the inside of Dtec is published, so real directions are our advantage. Walk each route **starting from where the robot will stand**. Send photos and a voice note for each one to the team chat. The remote team adds them to the agent.

@@ -25,7 +25,7 @@ _EN_STOP = {"the", "a", "an", "to", "is", "where", "please", "find", "go", "i", 
 def normalize(text):
     """Lowercase, drop accents and Arabic diacritics, fold Arabic letter variants."""
     text = unicodedata.normalize("NFKD", str(text or "").lower())
-    text = "".join(ch for ch in text if unicodedata.category(ch) != "Mn")  # é->e, أ->ا, harakat gone
+    text = "".join(ch for ch in text if unicodedata.category(ch)[0] != "M")  # é->e, أ->ا, harakat and Hindi vowel signs gone
     text = text.translate(_AR_FOLD)
     text = re.sub(r"[^\w\s]", " ", text)
     words = []
@@ -85,6 +85,12 @@ class Directory:
                 for kw in lang_kw:
                     self._index.append((p["id"], normalize(kw), "keyword"))
 
+    def lang(self, language):
+        """The profile language for a code like "ar" or "ar-AE"; English when we don't have it."""
+        code = str(language or "").lower()[:2]
+        known = [self.profile["languages"]["default"]] + list(self.profile["languages"].get("others", []))
+        return code if code in known else "en"
+
     # ------------------------------------------------------------------ matching
     def match(self, query):
         """Return {place_id: score}. Names beat keywords; longer names beat shorter."""
@@ -106,7 +112,7 @@ class Directory:
         return scores
 
     def lookup(self, query="", language="en", place_id=""):
-        lang = "ar" if str(language).lower().startswith("ar") else "en"
+        lang = self.lang(language)
         if place_id and place_id in self.places:
             return self._found(self.places[place_id], lang)
 

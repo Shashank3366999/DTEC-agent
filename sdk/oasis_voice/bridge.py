@@ -6,6 +6,8 @@ Added by the SDK:
   - client tools run on the robot (lookup_place, check-in, route, operator)
   - noise gate on the microphone (NOISE_GATE=0 to turn off)
   - latency log after every reply
+  - blind navigation: carries on mid-route after a network drop, two low beeps when the network is lost
+    (operator: stop and wait), camera markers (sense.py)
 
 Run on robot PC2, inside the container, after sourcing ROS 2 and AimDK:
   python3 -m oasis_voice bridge --profile profiles/dtec_navigator.json
@@ -16,7 +18,11 @@ Environment variables:
   WEBAPP_URL            reception screen web app, for check-in/route/operator
   TOOL_SECRET           the web app's secret, if it has one
   HALF_DUPLEX=1         mute the mic while the robot speaks (if it interrupts itself)
-  MIC_STREAM=1|2        1 built-in mic, 2 external mic (default: first that speaks)
+  RAW_MIC=1             listen to /aima/hal/audio/capture (no wake word needed, 6 channels mixed to mono).
+                        Default on. The raw mic has no echo cancellation, so HALF_DUPLEX is forced on with it.
+                        RAW_MIC=0 uses /agent/process_audio_output (needs the wake word before every sentence).
+  MIC_STREAM=auto       or an exact stream_id. auto = the first that speaks. The log shows every id heard.
+                        AgiBot's docs say 0 built-in and 1 external; the team guide says 1 and 2. Check the log.
   NOISE_GATE=0          turn the noise gate off
   NOISE_MIN_RMS=350     raise in very loud rooms (e.g. 600), lower if quiet speakers are missed
   VERBOSE=1             print every ElevenLabs event
@@ -25,6 +31,7 @@ Environment variables:
 import array
 import base64
 import json
+import math
 import os
 import queue
 import signal
@@ -40,13 +47,14 @@ from rclpy.executors import MultiThreadedExecutor
 from rclpy.node import Node
 from rclpy.qos import QoSHistoryPolicy, QoSProfile, QoSReliabilityPolicy
 
-from aimdk_msgs.msg import (AudioData, AudioInfo, AudioPlayback,
+from aimdk_msgs.msg import (AudioCapture, AudioData, AudioInfo, AudioPlayback,
                             AudioVadStateType, CommonState, FocusRequester,
                             FocusResponse, ProcessedAudioOutput)
 from aimdk_msgs.srv import AbandonAudioFocus, RequestAudioFocus, StopAudioPlay
 
 from .actions import ToolRouter
 from .audio import LatencyMeter, NoiseGate
+from . import sense
 
 RATE = 16000
 BYTES_PER_SEC = RATE * 2
@@ -54,8 +62,11 @@ CHUNK = BYTES_PER_SEC // 10  # 100 ms
 SILENCE = bytes(CHUNK)
 FOCUS_PRIORITY = 8
 
-HALF_DUPLEX = os.environ.get("HALF_DUPLEX", "0") == "1"
-MIC_STREAM = int(os.environ.get("MIC_STREAM", "0"))
+RAW_MIC = os.environ.get("RAW_MIC", "1") != "0"
+HALF_DUPLEX = os.environ.get("HALF_DUPLEX", "1") == "1" or RAW_MIC
+MIC_STREAM = os.environ.get("MIC_STREAM", "auto").strip().lower() or "auto"
+MIC_STREAM = None if MIC_STREAM == "auto" else int(MIC_STREAM)
+KEEP_ALIVE_S = 15  # while walking, silence is normal: tell ElevenLabs we are still here
 VERBOSE = os.environ.get("VERBOSE", "0") == "1"
 
 
@@ -83,6 +94,14 @@ def resample(pcm, src_rate):
     return y.astype(np.int16).tobytes()
 
 
+def tone(freq, seconds, level=6000):
+    n = int(RATE * seconds)
+    return array.array("h", [int(level * math.sin(2 * math.pi * freq * i / RATE)) for i in range(n)]).tobytes()
+
+
+LOST_SIGNAL = tone(330, 0.25) + bytes(BYTES_PER_SEC // 5) + tone(330, 0.25)
+
+
 class Bridge(Node):
     def __init__(self, agent_id, api_key, router):
         super().__init__("voo_elevenlabs_bridge")
@@ -101,13 +120,22 @@ class Bridge(Node):
         self.connected = False
         self.running = True
         self.robot_vad = False
+        self.heard_streams = set()
+        self.next_keep_alive = 0.0
+        self.opened_at = 0.0
+        self.resume_ok = True
+        self.resumed = False
+        self.had_connection = False
         self.gate = NoiseGate(min_rms=float(os.environ.get("NOISE_MIN_RMS", "350")),
                               enabled=os.environ.get("NOISE_GATE", "1") != "0")
         self.latency = LatencyMeter()
 
         mic_qos = QoSProfile(history=QoSHistoryPolicy.KEEP_LAST, depth=500,
                              reliability=QoSReliabilityPolicy.BEST_EFFORT)
-        self.create_subscription(ProcessedAudioOutput, "/agent/process_audio_output", self.on_mic, mic_qos)
+        if RAW_MIC:
+            self.create_subscription(AudioCapture, "/aima/hal/audio/capture", self.on_raw_mic, mic_qos)
+        else:
+            self.create_subscription(ProcessedAudioOutput, "/agent/process_audio_output", self.on_mic, mic_qos)
         self.create_subscription(FocusResponse, "/aima/hal/audio/focus_response", self.on_focus, 10)
         self.player = self.create_publisher(AudioPlayback, "/aima/hal/audio/playback", 10)
         self.focus_cli = self.create_client(RequestAudioFocus, "/aimdk_5Fmsgs/srv/RequestAudioFocus")
@@ -149,7 +177,10 @@ class Bridge(Node):
             threading.Thread(target=self.take_focus, daemon=True).start()
 
     def on_mic(self, msg):
-        if self.mic_stream == 0:
+        if msg.stream_id not in self.heard_streams:
+            self.heard_streams.add(msg.stream_id)
+            log("mic stream heard:", msg.stream_id)
+        if self.mic_stream is None:
             self.mic_stream = msg.stream_id
             log("listening on mic stream", msg.stream_id)
         if msg.stream_id != self.mic_stream:
@@ -166,6 +197,17 @@ class Bridge(Node):
         elif end is not None and vad == end:
             self.robot_vad = False
         self.mic_q.put(bytes(msg.audio_data))
+
+    def on_raw_mic(self, msg):
+        """Raw capture: interleaved S16LE, 4 mic channels + 2 speaker reference channels. Mix the mics to mono."""
+        if HALF_DUPLEX and time.monotonic() < self.speaking_until:
+            return
+        channels = int(msg.info.channels) or 1
+        mics = min(int(getattr(msg, "mic_channels", 0)) or channels, channels)
+        raw = array.array("h")
+        raw.frombytes(bytes(msg.data.data)[: len(msg.data.data) - len(msg.data.data) % (2 * channels)])
+        mono = array.array("h", (sum(raw[i:i + mics]) // mics for i in range(0, len(raw), channels)))
+        self.mic_q.put(mono.tobytes())
 
     def play(self, pcm):
         msg = AudioPlayback()
@@ -232,6 +274,9 @@ class Bridge(Node):
             if self.connected:
                 for piece in out or [SILENCE]:
                     self.send({"user_audio_chunk": base64.b64encode(piece).decode()})
+                if self.walking() and time.monotonic() > self.next_keep_alive:
+                    self.next_keep_alive = time.monotonic() + KEEP_ALIVE_S
+                    self.send({"type": "user_activity"})
             nxt += 0.1
             time.sleep(max(0.0, nxt - time.monotonic()))
 
@@ -280,13 +325,48 @@ class Bridge(Node):
         self.send({"type": "client_tool_result", "tool_call_id": call.get("tool_call_id"),
                    "result": result, "is_error": is_error})
 
+    def walking(self):
+        nav = self.router.nav
+        return bool(nav and nav.route)
+
+    def on_marker(self, node_id):
+        """The camera saw one of our markers (sense.py)."""
+        out = self.router.marker(node_id)
+        if not out:
+            return
+        log("marker:", node_id, "->", out.get("status"), out.get("say_operator", ""))
+        text = "[sensor] " + json.dumps(out, ensure_ascii=False)
+        # a new instruction or an arrival must be spoken now; "still on the way" is only background
+        kind = "user_message" if out["status"] in ("arrived", "next_step", "rerouted") else "contextual_update"
+        if self.connected:
+            self.send({"type": kind, "text": text})
+
     def on_open(self, ws):
+        hello = {"type": "conversation_initiation_client_data"}
+        self.resumed = self.had_connection and self.walking() and self.resume_ok
+        step = self.router.nav.status() if self.walking() else {}
+        if self.resumed:  # the network dropped on the way: no new greeting, just the current step
+            hello["conversation_config_override"] = {
+                "agent": {"first_message": "I'm back, sorry. " + step.get("say_operator", "")}}
+        self.opened_at = time.monotonic()
+        self.had_connection = True
         self.connected = True
-        self.send({"type": "conversation_initiation_client_data"})
+        self.send(hello)
+        if step:
+            self.send({"type": "contextual_update",
+                       "text": "The connection dropped during a trip. The trip continues: "
+                               + json.dumps(step, ensure_ascii=False)})
 
     def on_close(self, ws, code, msg):
-        self.connected = False
+        was_connected, self.connected = self.connected, False
         log("conversation closed", code or "", msg or "")
+        if self.resumed and time.monotonic() - self.opened_at < 3:
+            self.resume_ok = False  # the agent refuses the override (not built by us?): reconnect without it
+        if was_connected and self.running and self.walking():
+            log("NETWORK LOST during a trip: the operator must stop and wait")
+            with self.spk_lock:
+                self.spk.clear()
+                self.spk += LOST_SIGNAL
 
     def run_ws(self):
         backoff = 1
@@ -320,8 +400,13 @@ def run(agent_id, api_key, router):
     ex = MultiThreadedExecutor()
     ex.add_node(node)
     threading.Thread(target=ex.spin, daemon=True).start()
+    log(f"mic: {'raw /aima/hal/audio/capture (no wake word)' if RAW_MIC else '/agent/process_audio_output (say the wake word first)'}"
+        f" · half duplex {'on' if HALF_DUPLEX else 'off'}")
     log(f"agent {agent_id} · noise gate {'on' if node.gate.enabled else 'off'} · "
         f"screen {router.webapp_url or 'not set (check-in/route/operator will say the screen is offline)'}")
+
+    if router.nav:
+        sense.start(node, node.on_marker, log)
 
     if not node.take_focus():
         log("continuing without confirmed focus; the speaker may stay silent")

@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Live route · Dtec Floor Guide</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600&family=IBM+Plex+Sans+Arabic:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+  <script src="/map.js"></script>
+</head>
+<body>
+  <header class="bar">
+    <div class="brand"><span class="dot"></span><span id="bot">Dtec Floor Guide</span> <span class="small">· AI assistant</span></div>
+    <div class="right"><span class="tag" id="demo" hidden>Demo floor layout</span><span class="live" id="live"><i></i><span>connecting</span></span></div>
+  </header>
+  <div class="lost" id="lost" hidden>Screen connection lost. Operator: follow the robot's voice only.</div>
+  <div class="operator" id="operator" hidden><strong>Person needed</strong> <span id="operator-text"></span><button id="operator-done" type="button">Done</button></div>
+  <main class="nav">
+    <section class="panel told">
+      <h2>Operator</h2>
+      <p class="say" id="say-operator">Waiting for a visitor.</p>
+      <h2>Visitor</h2>
+      <p class="say visitor" id="say-visitor">…</p>
+      <dl class="facts">
+        <div><dt>Going to</dt><dd id="dest">–</dd></div>
+        <div><dt>Steps left</dt><dd id="left">–</dd></div>
+        <div><dt>Position from</dt><dd id="source">–</dd></div>
+        <div id="pending-row" hidden><dt>Afterwards</dt><dd id="pending"></dd></div>
+      </dl>
+    </section>
+    <section class="panel"><svg class="map" id="map" role="img" aria-label="Floor map with the route"></svg></section>
+    <section class="panel trips">
+      <h2>Trips <span class="small">· scored by ElevenLabs after every conversation</span></h2>
+      <ul class="triplist" id="trips"></ul>
+      <div class="empty" id="trips-empty">No finished trips yet.</div>
+    </section>
+    <section class="panel learn">
+      <h2>What visitors asked for that is not on the map</h2>
+      <p class="sub">Each one is a place to add. The map learns from every conversation.</p>
+      <ul class="unknown" id="unknown"></ul>
+      <div class="empty" id="unknown-empty">Nothing yet.</div>
+    </section>
+  </main>
+  <script>
+  (async function () {
+    const $ = (id) => document.getElementById(id);
+    const SOURCE = { start: "the starting point", counted: "counting steps", told: "what people said", marker: "camera marker" };
+    const profile = await (await fetch("/profile.json", { cache: "no-store" })).json();
+    $("bot").textContent = profile.bot.name;
+    $("demo").hidden = !profile.floor.demo;
+    const idle = { at: profile.floor.start.node, heading: profile.floor.start.heading, path: [] };
+    let visitor = "";
+    function render(nav) {
+      drawMap($("map"), profile, nav || idle);
+      const op = nav ? nav.say_operator || (nav.instruction && "Operator: " + nav.instruction) : "";
+      $("say-operator").textContent = (op || "Waiting for a visitor.").replace(/^Operator: /, "");
+      visitor = nav ? nav.say_visitor || (nav.walking ? visitor : "") : "";
+      $("say-visitor").textContent = visitor || "…";
+      $("say-visitor").dir = /[؀-ۿ]/.test(visitor) ? "rtl" : "ltr";
+      $("dest").textContent = (nav && nav.destination) || "–";
+      $("left").textContent = nav && nav.walking ? nav.steps_left : "–";
+      $("source").textContent = (nav && SOURCE[nav.source]) || "–";
+      $("pending-row").hidden = !(nav && nav.pending);
+      $("pending").textContent = (nav && nav.pending) || "";
+    }
+    let trips = [];
+    const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
+    function renderTrips() {
+      const list = $("trips");
+      list.replaceChildren();
+      $("trips-empty").style.display = trips.length ? "none" : "block";
+      for (const t of trips.slice(0, 6)) {
+        const li = el("li", "trip");
+        const passed = Object.values(t.scores || {}).filter((v) => v === "success").length, total = Object.keys(t.scores || {}).length;
+        li.append(el("div", "who", (t.destination || "no trip") + (t.destination_changed ? " · changed on the way" : "")));
+        li.append(el("div", "when", total ? `${passed}/${total} checks` : ""));
+        li.append(el("div", "host", [t.languages_used || t.visitor_language, t.steps_given ? t.steps_given + " steps" : "",
+          t.position_questions ? t.position_questions + " position question" + (t.position_questions > 1 ? "s" : "") : "",
+          t.human_requested ? "handed to a person" : ""].filter(Boolean).join(" · ")));
+        const bad = Object.entries(t.scores || {}).filter(([, v]) => v !== "success").map(([k]) => k.replace(/_/g, " "));
+        li.append(el("div", "status " + (bad.length ? "warn" : ""), bad.length ? "failed: " + bad.join(", ") : "all checks passed"));
+        list.append(li);
+      }
+      const unknown = [...new Set(trips.flatMap((t) => (t.unknown_requests || "").split(",").map((s) => s.trim()).filter(Boolean)))];
+      $("unknown").replaceChildren(...unknown.map((u) => el("li", null, u)));
+      $("unknown-empty").style.display = unknown.length ? "none" : "block";
+    }
+    function help(call) {
+      $("operator").hidden = !call;
+      if (call) $("operator-text").textContent = call.reason;
+    }
+    $("operator-done").onclick = () => help(null);
+    render(null);
+    const es = new EventSource("/api/events");
+    es.onopen = async () => {
+      $("live").classList.add("on");
+      $("live").lastChild.textContent = "live";
+      $("lost").hidden = true;
+      const s = await (await fetch("/api/state", { cache: "no-store" })).json();
+      trips = s.trips || [];
+      renderTrips();
+      render(s.nav);
+    };
+    es.onerror = () => {
+      $("live").classList.remove("on");
+      $("live").lastChild.textContent = "reconnecting";
+      $("lost").hidden = false;
+    };
+    es.addEventListener("nav", (e) => render(JSON.parse(e.data)));
+    es.addEventListener("operator", (e) => help(JSON.parse(e.data)));
+    es.addEventListener("trip", (e) => { const t = JSON.parse(e.data); trips = [t, ...trips.filter((x) => x.id !== t.id)]; renderTrips(); });
+    es.addEventListener("reset", () => { help(null); trips = []; renderTrips(); render(null); });
+  })();
+  </script>
+</body>
+</html>

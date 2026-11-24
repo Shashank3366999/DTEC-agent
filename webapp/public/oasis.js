@@ -7,7 +7,7 @@
   const MAX_OPTIONS = 4;
 
   function normalize(text) {
-    let t = String(text || "").toLowerCase().normalize("NFKD").replace(/\p{Mn}/gu, "");
+    let t = String(text || "").toLowerCase().normalize("NFKD").replace(/\p{M}/gu, "");
     t = t.replace(/[ةىؤئٱـ]/g, (c) => FOLD[c]);
     t = t.replace(/[^\p{L}\p{N}_\s]/gu, " ");
     return t.split(/\s+/).filter(Boolean).map((w) => (w.length > 3 && w.startsWith("ال") ? w.slice(2) : w)).join(" ");
@@ -70,6 +70,11 @@
       }
     }
 
+    lang(language) {
+      const code = String(language || "").toLowerCase().slice(0, 2);
+      return [this.profile.languages.default, ...(this.profile.languages.others || [])].includes(code) ? code : "en";
+    }
+
     match(query) {
       const q = normalize(query);
       let words = q.split(" ").filter((w) => w && !STOP.has(w));
@@ -88,7 +93,7 @@
     }
 
     lookup(query = "", language = "en", placeId = "") {
-      const lang = String(language).toLowerCase().startsWith("ar") ? "ar" : "en";
+      const lang = this.lang(language);
       if (placeId && this.places[placeId]) return this.found(this.places[placeId], lang);
       const scores = this.match(query);
       if (!scores.size) {
@@ -151,6 +156,7 @@
 
   // Client tools for the ElevenLabs widget (same names and results as the robot bridge).
   function makeClientTools(profile, base = "") {
+    if (profile.floor) return makeNavTools(profile, base);
     const dir = new Directory(profile);
     const langOf = (p) => (String(p.language || "").startsWith("ar") ? "ar" : "en");
     const op = profile.operator;
@@ -204,6 +210,46 @@
         return JSON.stringify(out);
       },
     };
+  }
+
+  // Blind navigation (profiles with a floor map): same tools as actions.py, planned by nav.js
+  function makeNavTools(profile, base = "") {
+    const nav = root.OasisNav ? new root.OasisNav.Navigator(profile) : null;
+    const send = (path, body) => fetch(base + path, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
+    let queue = Promise.resolve();
+    function show(last) {
+      const body = { ...nav.snapshot(), say_operator: (last && last.say_operator) || "", say_visitor: (last && last.say_visitor) || "", status: (last && last.status) || "" };
+      queue = queue.then(() => send("/api/nav", body)).catch(() => {});
+    }
+    const tool = (name, fn) => async (p) => {
+      let out;
+      try {
+        out = await fn(p || {});
+        show(out);
+      } catch (e) {
+        out = { status: "error", say_operator: "Operator: stop, please.", say: "Something failed. Say this, then call request_human." };
+      }
+      console.log("[tool]", name, p, out);
+      if (typeof root.onNavTool === "function") root.onNavTool(name, p, out);
+      return JSON.stringify(out);
+    };
+    const tools = {
+      find_place: (p) => nav.find(p.query || "", p.language || "en"),
+      start_route: (p) => nav.startRoute(p.place_id || "", p.language || "en", p.last_passed || "", String(p.same_person || "").toLowerCase() === "yes", p.start_at || ""),
+      step_done: (p) => nav.stepDone(p.step),
+      update_position: (p) => nav.updatePosition(p.at || "", p.facing || ""),
+      route_status: () => nav.status(),
+      cancel_route: () => nav.cancel(),
+      request_human: async (p) => {
+        let sent = false;
+        try { sent = (await send("/api/operator", { reason: p.reason || "", visitor_name: "", language: p.language || "en" })).ok; } catch (e) { /* offline */ }
+        return { status: "ok", alerted: sent,
+          say: (sent ? "An organiser has been alerted on the screen. " : "The screen is offline, nobody was alerted. ") +
+            `Tell the visitor: for a person, ${textFor(profile.operator.where, "en")}. The operator stays stopped.` };
+      },
+    };
+    show();
+    return Object.fromEntries(Object.entries(tools).map(([k, fn]) => [k, tool(k, fn)]));
   }
 
   const api = { normalize, ratio, openNow, Directory, makeClientTools };

@@ -20,3 +20,14 @@ Checked on 24 Nov 2026. Where sources disagreed, we kept the organisers' team gu
 ## Demo data
 
 Every place with `"demo": true` in `profiles/dtec_navigator.json` uses example directions made up for the demo. Replace them with the real directions from the on-site walk and remove `"demo": true`.
+
+## Blind navigation (`profiles/dtec_floor.json`)
+
+| Fact | Source |
+|---|---|
+| Places on the floor, rules, three routes | Team Guide Update (24 Nov), pages 2 and 3 |
+| Agent settings (Scribe v3 Live, overrides, tool options, voices) | ElevenLabs API reference, read 24 Nov 2026 |
+| Camera topic, mic stream ids, LiDAR and SLAM limits | AgiBot X2 AimDK docs 1.1.0, read 24 Nov 2026 |
+
+**Demo data:** the whole layout (positions, walks, sides, start, corner names). The guide names the places but gives no plan.
+The Arabic (Emirati) and Hindi lines were written by us and need a native speaker's check.

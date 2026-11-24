@@ -1,47 +1,47 @@
 # Team Hercules: AI Voice Navigator
 
-Voice of the Oasis Hackathon, Challenge 01 (Humanoid Robot A).
+Voice of the Oasis Hackathon, Challenge 01 (Humanoid Robot A), **new brief: blind navigation** (Team Guide Update, 24 Nov).
 
-A talking guide for the lobby robot at Dtec, Dubai Silicon Oasis. Visitors speak Arabic or English; the robot gives exact directions from our data, asks when a request is unclear, checks visitors in with their host, sends the route to their phone by QR code, and calls a human when needed.
+A MangoBot operator walks the robot. They don't know where the visitor wants to go and don't speak the visitor's language. Our agent does: it understands the visitor (Arabic, English, Hindi), plans the route, talks the operator there in English one step at a time, calls the stop, and tells the visitor they have arrived. If someone changes the destination halfway, it plans again from where the robot stands.
 
 ```
-Visitor ⇄ Robot mic/speaker ⇄ SDK bridge (noise gate, tools) ⇄ ElevenLabs agent
-                                     │
-                                     └──▶ web app: reception screen (check-ins, QR, operator alerts) + phone page
+Visitor (any language) ⇄ robot mic/speaker ⇄ bridge ⇄ ElevenLabs agent
+                                               │           │ tools
+Operator (English)     ⇄ same mic/speaker      └── navigator.py: map + position + next step (deterministic)
+                                               └── web app: /live (operator's line, visitor's line, floor map)
 ```
 
-Agent ID: **`agent_4001m86cac97egtb840g9whcrbz3`** (public, English + Arabic, PCM 16000 for the robot).
+ElevenLabs does more than talk here: a second voice for the operator, per-conversation scoring and data extraction, a post-call webhook that feeds a trip log, 9 agent tests in the dashboard, a pronunciation dictionary and fillers in 11 languages. The list is in [HANDOVER.md](HANDOVER.md).
+
+The AI understands and translates. **It never invents the way**: every step comes from the planner, which only knows the floor map in `sdk/profiles/dtec_floor.json`.
 
 ## What's in this repo
 
 | Folder | What it is |
 |---|---|
-| [`sdk/`](sdk/README.md) | **The Oasis Voice SDK.** Bot data (`profiles/`), deterministic directions, the 4 tools, agent builder, robot bridge, text chat tester, 22 tests |
-| [`webapp/`](webapp/README.md) | Reception screen, phone route page, laptop demo (`/kiosk`), test panel (`/test`) |
-| [`robot/`](robot/ROBOT_CHECKLIST.md) | Checklist for the person at the robot, and the organisers' original bridge as a fallback |
-| [`onsite/`](onsite/COLLECT_DIRECTIONS.md) | What to collect inside Dtec, and a message for the on-site teammate |
-| [`pitch/`](pitch/) | Demo script, 100-word description, 3 slides, pitch talk, likely questions |
-| [`HANDOVER.md`](HANDOVER.md) | **Start here:** what is done, what is left, deadlines |
-| [`WALKTHROUGH.md`](WALKTHROUGH.md) | Every step from zero to demo, in order |
-| `dist/oasis_voice_robot.zip` | The robot package (build it with `python3 robot/make_package.py`) |
+| [`HANDOVER.md`](HANDOVER.md) | **Start here:** what is left to do, in order |
+| [`sdk/`](sdk/README.md) | Floor map, route planner, tools, agent builder, robot bridge, tests |
+| [`webapp/`](webapp/README.md) | `/live` screen, `/walk` phone test, `/markers` to print, `/kiosk` laptop demo |
+| [`onsite/COLLECT_FLOOR_MAP.md`](onsite/COLLECT_FLOOR_MAP.md) | How to measure the real floor (about 20 minutes) |
+| [`robot/`](robot/ROBOT_CHECKLIST.md) | Checklist at the robot; `make_package.py` builds the zip |
+| [`pitch/`](pitch/) | Demo script for the three routes, pitch, submission text |
+
+The earlier lobby guide (`profiles/dtec_navigator.json`, agent `agent_4001m86cac97egtb840g9whcrbz3`) still works: add `--profile profiles/dtec_navigator.json`. The new bot is a **separate agent**, so building it does not touch the old one.
 
 ## Quick start
 
 ```bash
-# Laptop demo (works fully offline from Render: tools run in the browser)
-cd webapp && node server.js
-# open http://localhost:3000/kiosk   and press the call button
-
-# Test the agent by typing (tools run locally)
-cd sdk && pip3 install websocket-client && python3 -m oasis_voice chat
-
-# After changing sdk/profiles/dtec_navigator.json
-cd sdk && python3 -m oasis_voice build      # needs ELEVENLABS_API_KEY in .env
+cd sdk
+python3 -m oasis_voice validate
+python3 -m oasis_voice routes                      # every route, in the words the operator will hear
+python3 -m oasis_voice walk "second booth" --lang ar   # play the operator by typing
+python3 -m oasis_voice build                       # create/update the agent (ELEVENLABS_API_KEY in .env)
+python3 -m unittest discover -s tests
+cd ../webapp && npm test && node server.js         # then open /walk, /live, /kiosk
 ```
 
 ## Rules we follow
 
-- The agent is built on ElevenLabs Agents. We never move the robot.
-- Robot code runs only in the container on PC2. Don't touch the robot's system.
-- Facts come from the challenge brief, public sources (`sdk/SOURCES.md`) or our own walk of the building. Anything made up is marked `"demo": true`.
-- The ElevenLabs API key never goes in this repo, a doc or a chat.
+- Built on ElevenLabs Agents. **We never move the robot from code**; MangoBot does.
+- Robot code runs only in the container on PC2 and only reads the camera.
+- Layout data is marked demo until the real floor is measured. The API key never goes in this repo, a doc or a chat.

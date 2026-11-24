@@ -1,0 +1,658 @@
+{
+  "_comment": "Blind navigation (Team Guide Update, 24 Nov 2026). Places are from the brief. The LAYOUT (x, y, edges, faces, start) IS DEMO DATA: replace it with the on-site walk, see onsite/COLLECT_FLOOR_MAP.md.",
+  "bot": {
+    "id": "dtec_floor",
+    "name": "Dtec Floor Guide",
+    "role": "a voice guide on a humanoid robot that takes visitors to places on this floor of Dtec",
+    "location": "one floor of Dtec, Dubai Silicon Oasis",
+    "persona": "calm, warm and brief",
+    "timezone": "Asia/Dubai"
+  },
+  "languages": {
+    "default": "en",
+    "others": [
+      "ar",
+      "hi",
+      "es",
+      "fr",
+      "de",
+      "ru",
+      "pt",
+      "tr",
+      "zh",
+      "ur"
+    ]
+  },
+  "greeting": {
+    "en": "Hello! I'm the Dtec floor guide, an AI. Where can I take you? You can speak any language.",
+    "ar": "هلا! أنا دليل طابق دي تك، مساعد بالذكاء الاصطناعي. وين تحب أوصلك؟",
+    "hi": "नमस्ते! मैं डीटेक का फ़्लोर गाइड हूँ, एक एआई। मैं आपको कहाँ ले चलूँ?",
+    "es": "¡Hola! Soy el guía de planta de Dtec, una IA. ¿Adónde le llevo?",
+    "fr": "Bonjour ! Je suis le guide d'étage de Dtec, une IA. Où puis-je vous emmener ?",
+    "de": "Hallo! Ich bin der Etagen-Guide von Dtec, eine KI. Wohin darf ich Sie bringen?",
+    "ru": "Здравствуйте! Я гид по этажу Dtec, искусственный интеллект. Куда вас проводить?",
+    "pt": "Olá! Sou o guia do piso da Dtec, uma IA. Para onde o levo?",
+    "tr": "Merhaba! Ben Dtec kat rehberiyim, bir yapay zekâ. Sizi nereye götüreyim?",
+    "zh": "您好！我是 Dtec 楼层向导，一个人工智能。我带您去哪里？",
+    "ur": "السلام علیکم! میں ڈی ٹیک کا فلور گائیڈ ہوں، ایک اے آئی۔ میں آپ کو کہاں لے چلوں؟"
+  },
+  "operator": {
+    "name": {
+      "en": "the organisers' desk",
+      "ar": "مكتب المنظمين"
+    },
+    "where": {
+      "en": "please ask anyone with an organiser badge",
+      "ar": "اسأل أي شخص يحمل بطاقة المنظمين"
+    },
+    "when": "the visitor asks for a person, is upset, or needs something you can't do"
+  },
+  "voice": {
+    "asr_provider": "scribe_v3_live",
+    "turn_eagerness": "normal",
+    "voice_id": "gVzwmdZzRgBrNjXaTmi5",
+    "_voice_note": "Layan (Saudi, professional) from the ElevenLabs library, added to the team account. Samples of the alternatives: dist/voices/. Change voice_id and run build.",
+    "supported_voices": [
+      {
+        "label": "Operator",
+        "voice_id": "SAz9YHcvj6GT2YYXdXww",
+        "description": "The English voice for lines to the operator who walks the robot.",
+        "language": "en"
+      }
+    ],
+    "_voices_note": "supported_voices: 'Operator' = River (ElevenLabs premade, neutral, calm). Operator lines are wrapped in <Operator> tags by the agent so they come out in this voice.",
+    "soft_timeout": {
+      "en": "One moment.",
+      "ar": "لحظة.",
+      "hi": "एक पल।",
+      "es": "Un momento.",
+      "fr": "Un instant.",
+      "de": "Einen Moment.",
+      "ru": "Секунду.",
+      "pt": "Um momento.",
+      "tr": "Bir saniye.",
+      "zh": "稍等。",
+      "ur": "ایک لمحہ۔"
+    },
+    "interruption_ignore_terms": [
+      "okay",
+      "ok",
+      "hmm",
+      "mm",
+      "yes",
+      "yeah",
+      "right",
+      "sure",
+      "oh",
+      "aha",
+      "अच्छा",
+      "ठीक है",
+      "हाँ",
+      "हम्म",
+      "طيب",
+      "تمام",
+      "اوكي",
+      "أوكي",
+      "إي",
+      "ايوه",
+      "نعم",
+      "اها",
+      "vale",
+      "sí",
+      "oui",
+      "d'accord",
+      "ja",
+      "okay",
+      "да",
+      "sim",
+      "tamam",
+      "好的",
+      "嗯"
+    ],
+    "llm": "deepseek-v41-flash",
+    "_llm_note": "Compared 24 Nov: deepseek-v41-flash 23/27 ElevenLabs tests but 51/51 live multi-turn cases and ~1.5 s replies; claude-haiku-4-5 27/27 tests but 41/51 live (mislabels Spanish/French as English, chatty) and ~2.3 s; gpt-4.1-mini 23/27 tests."
+  },
+  "facts": [
+    {
+      "en": "On this floor: a meeting room, a conference room, four call booths, team tables, and a kitchen with tables and food.",
+      "source": "Team Guide Update, page 2"
+    }
+  ],
+  "actions": {
+    "operator": true
+  },
+  "asr_keywords": [
+    "Dtec",
+    "Operator",
+    "done",
+    "call booth",
+    "conference room",
+    "meeting room",
+    "team tables",
+    "kitchen"
+  ],
+  "examples": [
+    "Visitor: أبي مكان هادي أسوي فيه مكالمة.\nYou (after find_place): كابينة المكالمات تناسبك؟\nVisitor: إي، الثانية.\nYou (after start_route with booth_2): تمام، بنروح إلى كابينة المكالمات الثانية. تفضّل امشِ معنا. Operator: Walk straight about 6 metres, and stop at the main junction.\nOperator: Done.\nYou (after step_done): Operator: Turn left, then walk straight about 10 metres, and stop at the second call booth.",
+    "Operator: Done.\nYou (step_done says arrived): Operator: stop here, please. We have arrived. وصلنا: هذي كابينة المكالمات الثانية.",
+    "Second person, halfway: Sorry, can you take me to the conference room?\nYou (after start_route with conference_room): Operator: stop, please. تغيّرت الوجهة: بنروح أول إلى قاعة المؤتمرات، وبعدها أقدر أوصلك إلى كابينة المكالمات الثانية. Okay, we're going to the conference room. Please walk with us. Operator: New destination: the conference room. Turn around, then walk back, and stop at the conference room.",
+    "Visitor: وين نروح الحين؟\nYou: رايحين المطبخ.\nOperator: What was that about?\nYou: Operator: the visitor asked where we are going.",
+    "Visitor (while walking): طيب، شكراً.\nYou: العفو.",
+    "Visitor (while walking): धन्यवाद।\nYou: आपका स्वागत है।",
+    "Visitor (while walking): ठीक है, इसके बाद?\nYou: ऑपरेटर यह कदम पूरा कर लें, फिर बताता हूँ।",
+    "Visitor: मैं मेन जंक्शन पर हूँ और मुझे बूथ तीन जाना है।\nYou: (find_place बूथ तीन, then start_route with booth_3 and start_at \"main junction\")",
+    "Visitor: وين المسجد؟\nYou (find_place says not_found): ما عندي هالمكان في هالطابق. تبي أنادي لك أحد من المنظمين؟"
+  ],
+  "floor": {
+    "demo": true,
+    "start": {
+      "node": "start",
+      "heading": 0
+    },
+    "nodes": [
+      {
+        "id": "start",
+        "x": 0,
+        "y": 0,
+        "name": "the starting point"
+      },
+      {
+        "id": "junction",
+        "x": 0,
+        "y": 6,
+        "name": "the main junction"
+      },
+      {
+        "id": "kitchen",
+        "x": -5,
+        "y": 6
+      },
+      {
+        "id": "booth_1",
+        "x": -8,
+        "y": 6
+      },
+      {
+        "id": "booth_2",
+        "x": -10,
+        "y": 6
+      },
+      {
+        "id": "booth_3",
+        "x": -12,
+        "y": 6
+      },
+      {
+        "id": "booth_4",
+        "x": -14,
+        "y": 6
+      },
+      {
+        "id": "meeting_room",
+        "x": 5,
+        "y": 6
+      },
+      {
+        "id": "conference_room",
+        "x": 10,
+        "y": 6
+      },
+      {
+        "id": "team_tables",
+        "x": 0,
+        "y": 12
+      },
+      {
+        "id": "far_corner",
+        "x": 10,
+        "y": 12,
+        "name": "the far corner"
+      }
+    ],
+    "edges": [
+      [
+        "start",
+        "junction"
+      ],
+      [
+        "junction",
+        "kitchen"
+      ],
+      [
+        "kitchen",
+        "booth_1"
+      ],
+      [
+        "booth_1",
+        "booth_2"
+      ],
+      [
+        "booth_2",
+        "booth_3"
+      ],
+      [
+        "booth_3",
+        "booth_4"
+      ],
+      [
+        "junction",
+        "meeting_room"
+      ],
+      [
+        "meeting_room",
+        "conference_room"
+      ],
+      [
+        "junction",
+        "team_tables"
+      ],
+      [
+        "team_tables",
+        "far_corner"
+      ],
+      [
+        "far_corner",
+        "conference_room"
+      ]
+    ]
+  },
+  "places": [
+    {
+      "id": "call_booths",
+      "members": [
+        "booth_1",
+        "booth_2",
+        "booth_3",
+        "booth_4"
+      ],
+      "names": {
+        "en": [
+          "call booth",
+          "call booths",
+          "phone booth",
+          "booth",
+          "booths"
+        ],
+        "ar": [
+          "كابينة المكالمات",
+          "كابينة",
+          "كبائن المكالمات",
+          "كبينة"
+        ],
+        "hi": [
+          "कॉल बूथ",
+          "फ़ोन बूथ",
+          "बूथ"
+        ]
+      },
+      "keywords": {
+        "en": [
+          "quiet",
+          "call",
+          "phone call",
+          "private",
+          "zoom",
+          "silent"
+        ],
+        "ar": [
+          "هادي",
+          "هادئ",
+          "مكالمة",
+          "اتصال",
+          "خصوصية"
+        ],
+        "hi": [
+          "शांत",
+          "कॉल",
+          "फ़ोन"
+        ]
+      }
+    },
+    {
+      "id": "booth_1",
+      "node": "booth_1",
+      "faces": 0,
+      "label": "booth 1",
+      "names": {
+        "en": [
+          "first call booth",
+          "first booth",
+          "call booth one",
+          "booth one",
+          "call booth 1",
+          "booth 1"
+        ],
+        "ar": [
+          "كابينة المكالمات الأولى",
+          "الكابينة الأولى",
+          "كابينة رقم واحد"
+        ],
+        "hi": [
+          "पहला कॉल बूथ",
+          "पहला बूथ",
+          "बूथ एक"
+        ]
+      }
+    },
+    {
+      "id": "booth_2",
+      "node": "booth_2",
+      "faces": 0,
+      "label": "booth 2",
+      "names": {
+        "en": [
+          "second call booth",
+          "second booth",
+          "call booth two",
+          "booth two",
+          "call booth 2",
+          "booth 2"
+        ],
+        "ar": [
+          "كابينة المكالمات الثانية",
+          "الكابينة الثانية",
+          "كابينة رقم اثنين"
+        ],
+        "hi": [
+          "दूसरा कॉल बूथ",
+          "दूसरा बूथ",
+          "बूथ दो"
+        ]
+      }
+    },
+    {
+      "id": "booth_3",
+      "node": "booth_3",
+      "faces": 0,
+      "label": "booth 3",
+      "names": {
+        "en": [
+          "third call booth",
+          "third booth",
+          "call booth three",
+          "booth three",
+          "call booth 3",
+          "booth 3"
+        ],
+        "ar": [
+          "كابينة المكالمات الثالثة",
+          "الكابينة الثالثة",
+          "كابينة رقم ثلاثة"
+        ],
+        "hi": [
+          "तीसरा कॉल बूथ",
+          "तीसरा बूथ",
+          "बूथ तीन"
+        ]
+      }
+    },
+    {
+      "id": "booth_4",
+      "node": "booth_4",
+      "faces": 0,
+      "label": "booth 4",
+      "names": {
+        "en": [
+          "fourth call booth",
+          "fourth booth",
+          "call booth four",
+          "booth four",
+          "call booth 4",
+          "booth 4",
+          "last booth"
+        ],
+        "ar": [
+          "كابينة المكالمات الرابعة",
+          "الكابينة الرابعة",
+          "كابينة رقم أربعة"
+        ],
+        "hi": [
+          "चौथा कॉल बूथ",
+          "चौथा बूथ",
+          "बूथ चार"
+        ]
+      }
+    },
+    {
+      "id": "kitchen",
+      "node": "kitchen",
+      "faces": 180,
+      "names": {
+        "en": [
+          "kitchen",
+          "pantry"
+        ],
+        "ar": [
+          "المطبخ"
+        ],
+        "hi": [
+          "रसोई",
+          "किचन"
+        ]
+      },
+      "keywords": {
+        "en": [
+          "food",
+          "eat",
+          "hungry",
+          "lunch",
+          "dinner",
+          "coffee",
+          "tea",
+          "water",
+          "drink",
+          "snack",
+          "thirsty",
+          "tables",
+          "table"
+        ],
+        "ar": [
+          "أكل",
+          "اكل",
+          "جوعان",
+          "قهوة",
+          "شاي",
+          "ماي",
+          "ماء",
+          "عطشان",
+          "غدا",
+          "عشا"
+        ],
+        "hi": [
+          "खाना",
+          "भूख",
+          "कॉफ़ी",
+          "चाय",
+          "पानी",
+          "नाश्ता"
+        ]
+      }
+    },
+    {
+      "id": "meeting_room",
+      "node": "meeting_room",
+      "faces": 180,
+      "names": {
+        "en": [
+          "meeting room"
+        ],
+        "ar": [
+          "غرفة الاجتماعات",
+          "غرفة الاجتماع"
+        ],
+        "hi": [
+          "मीटिंग रूम",
+          "बैठक कक्ष"
+        ]
+      },
+      "keywords": {
+        "en": [
+          "meeting"
+        ],
+        "ar": [
+          "اجتماع"
+        ],
+        "hi": [
+          "मीटिंग",
+          "बैठक"
+        ]
+      }
+    },
+    {
+      "id": "conference_room",
+      "node": "conference_room",
+      "faces": 90,
+      "names": {
+        "en": [
+          "conference room",
+          "conference hall"
+        ],
+        "ar": [
+          "قاعة المؤتمرات",
+          "غرفة المؤتمرات"
+        ],
+        "hi": [
+          "कॉन्फ़्रेंस रूम",
+          "सम्मेलन कक्ष"
+        ]
+      },
+      "keywords": {
+        "en": [
+          "meeting",
+          "conference",
+          "presentation",
+          "pitch"
+        ],
+        "ar": [
+          "اجتماع",
+          "مؤتمر",
+          "عرض"
+        ],
+        "hi": [
+          "मीटिंग",
+          "कॉन्फ़्रेंस"
+        ]
+      }
+    },
+    {
+      "id": "team_tables",
+      "node": "team_tables",
+      "faces": 0,
+      "names": {
+        "en": [
+          "team tables",
+          "team table",
+          "hackathon tables"
+        ],
+        "ar": [
+          "طاولات الفرق",
+          "طاولات الفريق"
+        ],
+        "hi": [
+          "टीम टेबल",
+          "टीम की मेज़"
+        ]
+      },
+      "keywords": {
+        "en": [
+          "tables",
+          "table",
+          "work",
+          "laptop",
+          "desk",
+          "sit",
+          "teams",
+          "hackers"
+        ],
+        "ar": [
+          "شغل",
+          "لابتوب",
+          "أجلس",
+          "اجلس",
+          "فريق"
+        ],
+        "hi": [
+          "काम",
+          "लैपटॉप",
+          "बैठना"
+        ]
+      }
+    }
+  ],
+  "pronunciation": [
+    {
+      "say": "Dtec",
+      "as": "Dee-tek"
+    },
+    {
+      "say": "DSO",
+      "as": "D S O"
+    },
+    {
+      "say": "Oraseya",
+      "as": "Oh-rah-say-ah"
+    }
+  ],
+  "analysis": {
+    "criteria": [
+      {
+        "id": "no_invented_directions",
+        "name": "No invented directions",
+        "prompt": "Every turn, distance, landmark or stop the agent told the operator came word for word from a tool result (start_route, step_done, update_position or route_status). FAIL if the agent gave the operator any direction that no tool returned, or changed one."
+      },
+      {
+        "id": "operator_lines_english",
+        "name": "Operator lines in English",
+        "prompt": "Every line addressed to the operator was in English and began with 'Operator:'. Lines to the visitor were in the visitor's language. FAIL if a visitor was answered in the wrong language or an operator line was not English."
+      },
+      {
+        "id": "asked_not_guessed",
+        "name": "Asked, never guessed",
+        "prompt": "Whenever the request was vague, matched several places, or was not on the map, the agent asked one short question or said it did not know and offered a person. FAIL if it guessed a place, a position, or invented a place that is not on the floor."
+      },
+      {
+        "id": "clean_stop_and_arrival",
+        "name": "Clean stop and arrival",
+        "prompt": "For every trip that was started: it ended with 'Operator: stop here, please' and an arrival line to the visitor in their language, OR it was explicitly changed to a new destination with the operator told to stop first, OR it was cancelled. FAIL if a trip just trailed off, or an arrival was announced without a stop line."
+      },
+      {
+        "id": "stayed_brief",
+        "name": "Stayed brief",
+        "prompt": "The agent gave one step at a time and kept visitor replies to one or two sentences. FAIL if it listed several steps at once, repeated a step nobody asked for, or lectured."
+      }
+    ],
+    "collect": {
+      "destination": {
+        "type": "string",
+        "description": "The final destination of the trip, in English, e.g. 'second call booth'. Empty if no trip started."
+      },
+      "visitor_language": {
+        "type": "string",
+        "description": "Language code the first visitor spoke, e.g. ar, en, hi, es."
+      },
+      "languages_used": {
+        "type": "string",
+        "description": "All languages spoken by visitors in this conversation, as codes separated by commas."
+      },
+      "destination_changed": {
+        "type": "boolean",
+        "description": "True if a second destination was requested while a trip was in progress."
+      },
+      "unknown_requests": {
+        "type": "string",
+        "description": "Places or things visitors asked for that are NOT on the floor map, in English, separated by commas. Empty if none. This list is used to improve the map."
+      },
+      "position_questions": {
+        "type": "integer",
+        "description": "How many times the agent had to ask where the robot was (what was passed last, or what is next to the robot)."
+      },
+      "human_requested": {
+        "type": "boolean",
+        "description": "True if the agent called request_human or sent the visitor to a person."
+      },
+      "steps_given": {
+        "type": "integer",
+        "description": "How many 'Operator:' walking instructions were given in total."
+      }
+    }
+  }
+}

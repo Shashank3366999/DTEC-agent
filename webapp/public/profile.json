@@ -1,949 +1,712 @@
 {
  "bot": {
-  "id": "dtec_navigator",
-  "name": "DSO Visitor Guide",
-  "role": "a voice guide that helps visitors, new hires and summit guests find their way around Dtec and Dubai Silicon Oasis",
-  "location": "the ground-floor lobby of Dtec TechnoHub 1, Dubai Silicon Oasis, a few steps inside the main glass doors",
-  "persona": "calm, warm and efficient, like a good hotel concierge",
-  "event_today": "Doers Summit Dubai 2026 is on this week at Dubai Silicon Oasis.",
-  "timezone": "Asia/Dubai",
-  "channel_note": "You speak through a humanoid robot's speaker. A screen next to you shows check-ins and QR codes."
+  "id": "dtec_floor",
+  "name": "Dtec Floor Guide",
+  "role": "a voice guide on a humanoid robot that takes visitors to places on this floor of Dtec",
+  "location": "one floor of Dtec, Dubai Silicon Oasis",
+  "persona": "calm, warm and brief",
+  "timezone": "Asia/Dubai"
  },
  "languages": {
   "default": "en",
   "others": [
-   "ar"
+   "ar",
+   "hi",
+   "es",
+   "fr",
+   "de",
+   "ru",
+   "pt",
+   "tr",
+   "zh",
+   "ur"
   ]
  },
  "greeting": {
-  "en": "Hello, I'm the DSO Visitor Guide, an AI assistant. Where would you like to go today? You can speak English or Arabic.",
-  "ar": "مرحباً، أنا دليل الزوار في واحة دبي للسيليكون، مساعد يعمل بالذكاء الاصطناعي. إلى أين تريد أن تذهب اليوم؟ يمكنك التحدث بالعربية أو الإنجليزية."
+  "en": "Hello! I'm the Dtec floor guide, an AI. Where can I take you? You can speak any language.",
+  "ar": "هلا! أنا دليل طابق دي تك، مساعد بالذكاء الاصطناعي. وين تحب أوصلك؟",
+  "hi": "नमस्ते! मैं डीटेक का फ़्लोर गाइड हूँ, एक एआई। मैं आपको कहाँ ले चलूँ?",
+  "es": "¡Hola! Soy el guía de planta de Dtec, una IA. ¿Adónde le llevo?",
+  "fr": "Bonjour ! Je suis le guide d'étage de Dtec, une IA. Où puis-je vous emmener ?",
+  "de": "Hallo! Ich bin der Etagen-Guide von Dtec, eine KI. Wohin darf ich Sie bringen?",
+  "ru": "Здравствуйте! Я гид по этажу Dtec, искусственный интеллект. Куда вас проводить?",
+  "pt": "Olá! Sou o guia do piso da Dtec, uma IA. Para onde o levo?",
+  "tr": "Merhaba! Ben Dtec kat rehberiyim, bir yapay zekâ. Sizi nereye götüreyim?",
+  "zh": "您好！我是 Dtec 楼层向导，一个人工智能。我带您去哪里？",
+  "ur": "السلام علیکم! میں ڈی ٹیک کا فلور گائیڈ ہوں، ایک اے آئی۔ میں آپ کو کہاں لے چلوں؟"
  },
  "operator": {
   "name": {
-   "en": "the reception desk",
-   "ar": "مكتب الاستقبال"
+   "en": "the organisers' desk",
+   "ar": "مكتب المنظمين"
   },
   "where": {
-   "en": "a few steps to my right, facing the entrance",
-   "ar": "على بُعد خطوات إلى يميني، مقابل المدخل"
+   "en": "please ask anyone with an organiser badge",
+   "ar": "اسأل أي شخص يحمل بطاقة المنظمين"
   },
-  "phone": "600 59 55 57",
-  "phone_hours": "Monday to Friday, 08:00 to 15:00",
-  "when": "the visitor asks for a person, is upset, disputes something, needs something you can't do, or you don't know the answer"
+  "when": "the visitor asks for a person, is upset, or needs something you can't do"
+ },
+ "voice": {
+  "asr_provider": "scribe_v3_live",
+  "turn_eagerness": "normal",
+  "voice_id": "gVzwmdZzRgBrNjXaTmi5",
+  "_voice_note": "Layan (Saudi, professional) from the ElevenLabs library, added to the team account. Samples of the alternatives: dist/voices/. Change voice_id and run build.",
+  "supported_voices": [
+   {
+    "label": "Operator",
+    "voice_id": "SAz9YHcvj6GT2YYXdXww",
+    "description": "The English voice for lines to the operator who walks the robot.",
+    "language": "en"
+   }
+  ],
+  "_voices_note": "supported_voices: 'Operator' = River (ElevenLabs premade, neutral, calm). Operator lines are wrapped in <Operator> tags by the agent so they come out in this voice.",
+  "soft_timeout": {
+   "en": "One moment.",
+   "ar": "لحظة.",
+   "hi": "एक पल।",
+   "es": "Un momento.",
+   "fr": "Un instant.",
+   "de": "Einen Moment.",
+   "ru": "Секунду.",
+   "pt": "Um momento.",
+   "tr": "Bir saniye.",
+   "zh": "稍等。",
+   "ur": "ایک لمحہ۔"
+  },
+  "interruption_ignore_terms": [
+   "okay",
+   "ok",
+   "hmm",
+   "mm",
+   "yes",
+   "yeah",
+   "right",
+   "sure",
+   "oh",
+   "aha",
+   "अच्छा",
+   "ठीक है",
+   "हाँ",
+   "हम्म",
+   "طيب",
+   "تمام",
+   "اوكي",
+   "أوكي",
+   "إي",
+   "ايوه",
+   "نعم",
+   "اها",
+   "vale",
+   "sí",
+   "oui",
+   "d'accord",
+   "ja",
+   "okay",
+   "да",
+   "sim",
+   "tamam",
+   "好的",
+   "嗯"
+  ],
+  "llm": "deepseek-v41-flash",
+  "_llm_note": "Compared 24 Nov: deepseek-v41-flash 23/27 ElevenLabs tests but 51/51 live multi-turn cases and ~1.5 s replies; claude-haiku-4-5 27/27 tests but 41/51 live (mislabels Spanish/French as English, chatty) and ~2.3 s; gpt-4.1-mini 23/27 tests."
  },
  "facts": [
   {
-   "en": "Dtec (Dubai Technology Entrepreneur Campus) has two campuses: TechnoHub 1, and building A5 in Dubai Digital Park.",
-   "source": "DSO"
-  },
-  {
-   "en": "Dtec's main campus is in TechnoHub 1 and 2, Dubai Silicon Oasis. Website: dtec dot ae.",
-   "source": "Public"
-  },
-  {
-   "en": "Dtec office hours are 07:30 to 15:00. Members have 24/7 access.",
-   "source": "Dtec"
-  },
-  {
-   "en": "The Doers Summit is a tech and startup summit hosted by Dubai Silicon Oasis, with more than 100 speakers from companies such as Meta, Intel, Nvidia, IBM, Salesforce, Spotify and Bosch. The full agenda is on doerssummit dot com; for session times and rooms, send visitors there or to summit staff.",
-   "source": "Public"
-  },
-  {
-   "en": "The Voice of the Oasis hackathon winners present on the Doers Summit main stage on Wednesday at 13:00.",
-   "source": "Organisers"
-  },
-  {
-   "en": "Bus routes 50, 320, 365, 366 and X25 serve Dubai Silicon Oasis.",
-   "source": "Research"
-  },
-  {
-   "en": "In an emergency, call 999.",
-   "source": "UAE"
+   "en": "On this floor: a meeting room, a conference room, four call booths, team tables, and a kitchen with tables and food.",
+   "source": "Team Guide Update, page 2"
   }
  ],
  "actions": {
-  "check_in": true,
-  "send_route": true,
   "operator": true
  },
  "asr_keywords": [
   "Dtec",
-  "TechnoHub",
-  "Techno Point",
-  "Dubai Silicon Oasis",
-  "DSO",
-  "Oraseya Capital",
-  "Silicon Central",
-  "Emirates NBD",
-  "Burjeel",
-  "Doers Summit",
-  "Union Coop",
-  "Souq Extra",
-  "Al Waha"
+  "Operator",
+  "done",
+  "call booth",
+  "conference room",
+  "meeting room",
+  "team tables",
+  "kitchen"
  ],
+ "examples": [
+  "Visitor: أبي مكان هادي أسوي فيه مكالمة.\nYou (after find_place): كابينة المكالمات تناسبك؟\nVisitor: إي، الثانية.\nYou (after start_route with booth_2): تمام، بنروح إلى كابينة المكالمات الثانية. تفضّل امشِ معنا. Operator: Walk straight about 6 metres, and stop at the main junction.\nOperator: Done.\nYou (after step_done): Operator: Turn left, then walk straight about 10 metres, and stop at the second call booth.",
+  "Operator: Done.\nYou (step_done says arrived): Operator: stop here, please. We have arrived. وصلنا: هذي كابينة المكالمات الثانية.",
+  "Second person, halfway: Sorry, can you take me to the conference room?\nYou (after start_route with conference_room): Operator: stop, please. تغيّرت الوجهة: بنروح أول إلى قاعة المؤتمرات، وبعدها أقدر أوصلك إلى كابينة المكالمات الثانية. Okay, we're going to the conference room. Please walk with us. Operator: New destination: the conference room. Turn around, then walk back, and stop at the conference room.",
+  "Visitor: وين نروح الحين؟\nYou: رايحين المطبخ.\nOperator: What was that about?\nYou: Operator: the visitor asked where we are going.",
+  "Visitor (while walking): طيب، شكراً.\nYou: العفو.",
+  "Visitor (while walking): धन्यवाद।\nYou: आपका स्वागत है।",
+  "Visitor (while walking): ठीक है, इसके बाद?\nYou: ऑपरेटर यह कदम पूरा कर लें, फिर बताता हूँ।",
+  "Visitor: मैं मेन जंक्शन पर हूँ और मुझे बूथ तीन जाना है।\nYou: (find_place बूथ तीन, then start_route with booth_3 and start_at \"main junction\")",
+  "Visitor: وين المسجد؟\nYou (find_place says not_found): ما عندي هالمكان في هالطابق. تبي أنادي لك أحد من المنظمين؟"
+ ],
+ "floor": {
+  "demo": true,
+  "start": {
+   "node": "start",
+   "heading": 0
+  },
+  "nodes": [
+   {
+    "id": "start",
+    "x": 0,
+    "y": 0,
+    "name": "the starting point"
+   },
+   {
+    "id": "junction",
+    "x": 0,
+    "y": 6,
+    "name": "the main junction"
+   },
+   {
+    "id": "kitchen",
+    "x": -5,
+    "y": 6
+   },
+   {
+    "id": "booth_1",
+    "x": -8,
+    "y": 6
+   },
+   {
+    "id": "booth_2",
+    "x": -10,
+    "y": 6
+   },
+   {
+    "id": "booth_3",
+    "x": -12,
+    "y": 6
+   },
+   {
+    "id": "booth_4",
+    "x": -14,
+    "y": 6
+   },
+   {
+    "id": "meeting_room",
+    "x": 5,
+    "y": 6
+   },
+   {
+    "id": "conference_room",
+    "x": 10,
+    "y": 6
+   },
+   {
+    "id": "team_tables",
+    "x": 0,
+    "y": 12
+   },
+   {
+    "id": "far_corner",
+    "x": 10,
+    "y": 12,
+    "name": "the far corner"
+   }
+  ],
+  "edges": [
+   [
+    "start",
+    "junction"
+   ],
+   [
+    "junction",
+    "kitchen"
+   ],
+   [
+    "kitchen",
+    "booth_1"
+   ],
+   [
+    "booth_1",
+    "booth_2"
+   ],
+   [
+    "booth_2",
+    "booth_3"
+   ],
+   [
+    "booth_3",
+    "booth_4"
+   ],
+   [
+    "junction",
+    "meeting_room"
+   ],
+   [
+    "meeting_room",
+    "conference_room"
+   ],
+   [
+    "junction",
+    "team_tables"
+   ],
+   [
+    "team_tables",
+    "far_corner"
+   ],
+   [
+    "far_corner",
+    "conference_room"
+   ]
+  ]
+ },
  "places": [
   {
-   "id": "reception_desk",
+   "id": "call_booths",
+   "members": [
+    "booth_1",
+    "booth_2",
+    "booth_3",
+    "booth_4"
+   ],
    "names": {
     "en": [
-     "reception desk",
-     "reception",
-     "front desk",
-     "information desk",
-     "help desk"
+     "call booth",
+     "call booths",
+     "phone booth",
+     "booth",
+     "booths"
     ],
     "ar": [
-     "مكتب الاستقبال",
-     "الاستقبال"
+     "كابينة المكالمات",
+     "كابينة",
+     "كبائن المكالمات",
+     "كبينة"
+    ],
+    "hi": [
+     "कॉल बूथ",
+     "फ़ोन बूथ",
+     "बूथ"
     ]
    },
    "keywords": {
     "en": [
-     "help",
-     "information",
-     "register",
-     "registration",
-     "access card",
-     "badge",
-     "visitor pass"
+     "quiet",
+     "call",
+     "phone call",
+     "private",
+     "zoom",
+     "silent"
     ],
     "ar": [
-     "مساعدة",
-     "تسجيل",
-     "بطاقة دخول"
-    ]
-   },
-   "where": {
-    "en": "Ground floor, next to the robot",
-    "ar": "الطابق الأرضي، بجانب الروبوت"
-   },
-   "directions": {
-    "en": [
-     "The reception desk is a few steps to my right, facing the entrance."
+     "هادي",
+     "هادئ",
+     "مكالمة",
+     "اتصال",
+     "خصوصية"
     ],
-    "ar": [
-     "مكتب الاستقبال على بُعد خطوات إلى يميني، مقابل المدخل."
+    "hi": [
+     "शांत",
+     "कॉल",
+     "फ़ोन"
     ]
-   },
-   "walk_minutes": 1,
-   "demo": true
+   }
   },
   {
-   "id": "main_entrance",
+   "id": "booth_1",
+   "node": "booth_1",
+   "faces": 0,
+   "label": "booth 1",
    "names": {
     "en": [
-     "main entrance",
-     "entrance",
-     "exit",
-     "way out",
-     "main door"
+     "first call booth",
+     "first booth",
+     "call booth one",
+     "booth one",
+     "call booth 1",
+     "booth 1"
     ],
     "ar": [
-     "المدخل الرئيسي",
-     "المدخل",
-     "المخرج",
-     "الباب الرئيسي"
-    ]
-   },
-   "where": {
-    "en": "Right behind the robot",
-    "ar": "خلف الروبوت مباشرة"
-   },
-   "directions": {
-    "en": [
-     "The main glass doors are right behind me."
+     "كابينة المكالمات الأولى",
+     "الكابينة الأولى",
+     "كابينة رقم واحد"
     ],
-    "ar": [
-     "الأبواب الزجاجية الرئيسية خلفي مباشرة."
+    "hi": [
+     "पहला कॉल बूथ",
+     "पहला बूथ",
+     "बूथ एक"
     ]
-   },
-   "walk_minutes": 1,
-   "demo": true
+   }
   },
   {
-   "id": "lifts",
+   "id": "booth_2",
+   "node": "booth_2",
+   "faces": 0,
+   "label": "booth 2",
    "names": {
     "en": [
-     "lifts",
-     "lift",
-     "elevators",
-     "elevator"
+     "second call booth",
+     "second booth",
+     "call booth two",
+     "booth two",
+     "call booth 2",
+     "booth 2"
     ],
     "ar": [
-     "المصاعد",
-     "المصعد",
-     "الأسانسير"
-    ]
-   },
-   "where": {
-    "en": "Ground floor, past the reception desk",
-    "ar": "الطابق الأرضي، بعد مكتب الاستقبال"
-   },
-   "directions": {
-    "en": [
-     "Walk straight ahead past the reception desk.",
-     "The lifts are on your left."
+     "كابينة المكالمات الثانية",
+     "الكابينة الثانية",
+     "كابينة رقم اثنين"
     ],
-    "ar": [
-     "امشِ إلى الأمام مباشرة بعد مكتب الاستقبال.",
-     "المصاعد على يسارك."
+    "hi": [
+     "दूसरा कॉल बूथ",
+     "दूसरा बूथ",
+     "बूथ दो"
     ]
-   },
-   "walk_minutes": 1,
-   "demo": true
+   }
   },
   {
-   "id": "stairs",
+   "id": "booth_3",
+   "node": "booth_3",
+   "faces": 0,
+   "label": "booth 3",
    "names": {
     "en": [
-     "stairs",
-     "staircase",
-     "stairway"
+     "third call booth",
+     "third booth",
+     "call booth three",
+     "booth three",
+     "call booth 3",
+     "booth 3"
     ],
     "ar": [
-     "الدرج",
-     "السلالم"
-    ]
-   },
-   "where": {
-    "en": "Next to the lifts",
-    "ar": "بجانب المصاعد"
-   },
-   "directions": {
-    "en": [
-     "Walk straight ahead past the reception desk.",
-     "The stairs are next to the lifts, on the right."
+     "كابينة المكالمات الثالثة",
+     "الكابينة الثالثة",
+     "كابينة رقم ثلاثة"
     ],
-    "ar": [
-     "امشِ إلى الأمام مباشرة بعد مكتب الاستقبال.",
-     "الدرج بجانب المصاعد، على اليمين."
+    "hi": [
+     "तीसरा कॉल बूथ",
+     "तीसरा बूथ",
+     "बूथ तीन"
     ]
-   },
-   "walk_minutes": 1,
-   "demo": true
+   }
   },
   {
-   "id": "oraseya_capital",
+   "id": "booth_4",
+   "node": "booth_4",
+   "faces": 0,
+   "label": "booth 4",
    "names": {
     "en": [
-     "Oraseya Capital",
-     "Oraseya"
+     "fourth call booth",
+     "fourth booth",
+     "call booth four",
+     "booth four",
+     "call booth 4",
+     "booth 4",
+     "last booth"
     ],
     "ar": [
-     "أوراسيا كابيتال",
-     "أوراسيا"
+     "كابينة المكالمات الرابعة",
+     "الكابينة الرابعة",
+     "كابينة رقم أربعة"
+    ],
+    "hi": [
+     "चौथा कॉल बूथ",
+     "चौथा बूथ",
+     "बूथ चार"
+    ]
+   }
+  },
+  {
+   "id": "kitchen",
+   "node": "kitchen",
+   "faces": 180,
+   "names": {
+    "en": [
+     "kitchen",
+     "pantry"
+    ],
+    "ar": [
+     "المطبخ"
+    ],
+    "hi": [
+     "रसोई",
+     "किचन"
     ]
    },
    "keywords": {
     "en": [
-     "first floor"
-    ],
-    "ar": [
-     "الطابق الأول"
-    ]
-   },
-   "where": {
-    "en": "First floor of Dtec TechnoHub 1",
-    "ar": "الطابق الأول في مبنى دي تك تكنو هب 1"
-   },
-   "directions": {
-    "en": [
-     "Walk straight ahead past the reception desk to the lifts on your left.",
-     "Take the lift to the first floor.",
-     "Come out of the lift, turn right and follow the signs to Oraseya Capital."
-    ],
-    "ar": [
-     "امشِ إلى الأمام بعد مكتب الاستقبال حتى المصاعد على يسارك.",
-     "اصعد بالمصعد إلى الطابق الأول.",
-     "عند الخروج من المصعد، انعطف يميناً واتبع اللافتات إلى أوراسيا كابيتال."
-    ]
-   },
-   "walk_minutes": 2,
-   "tip": {
-    "en": "I can tell Oraseya Capital you have arrived.",
-    "ar": "يمكنني إبلاغ أوراسيا كابيتال بوصولك."
-   },
-   "check_in": true,
-   "demo": true
-  },
-  {
-   "id": "toilets",
-   "names": {
-    "en": [
-     "toilets",
-     "toilet",
-     "restroom",
-     "washroom",
-     "bathroom",
-     "wc"
-    ],
-    "ar": [
-     "دورة المياه",
-     "الحمام",
-     "الحمامات",
-     "تواليت"
-    ]
-   },
-   "where": {
-    "en": "Ground floor, end of the corridor past the lifts",
-    "ar": "الطابق الأرضي، نهاية الممر بعد المصاعد"
-   },
-   "directions": {
-    "en": [
-     "Walk straight ahead past the lifts to the end of the corridor.",
-     "The toilets are on the right."
-    ],
-    "ar": [
-     "امشِ إلى الأمام بعد المصاعد حتى نهاية الممر.",
-     "دورات المياه على اليمين."
-    ]
-   },
-   "walk_minutes": 2,
-   "demo": true
-  },
-  {
-   "id": "prayer_room",
-   "names": {
-    "en": [
-     "prayer room",
-     "musalla",
-     "musallah"
-    ],
-    "ar": [
-     "المصلى",
-     "غرفة الصلاة"
-    ]
-   },
-   "keywords": {
-    "en": [
-     "pray",
-     "prayer",
-     "namaz",
-     "salah"
-    ],
-    "ar": [
-     "صلاة",
-     "أصلي",
-     "اصلي",
-     "الصلاة"
-    ]
-   },
-   "where": {
-    "en": "Ground floor, next to the toilets past the lifts",
-    "ar": "الطابق الأرضي، بجانب دورات المياه بعد المصاعد"
-   },
-   "directions": {
-    "en": [
-     "Walk straight ahead past the lifts to the end of the corridor.",
-     "The prayer room is next to the toilets."
-    ],
-    "ar": [
-     "امشِ إلى الأمام بعد المصاعد حتى نهاية الممر.",
-     "المصلى بجانب دورات المياه."
-    ]
-   },
-   "walk_minutes": 2,
-   "tip": {
-    "en": "There are separate rooms for men and women.",
-    "ar": "هناك مصلى للرجال وآخر للنساء."
-   },
-   "demo": true
-  },
-  {
-   "id": "cafe_dtec",
-   "names": {
-    "en": [
-     "Dtec cafe",
-     "cafe",
-     "coffee shop",
-     "cafeteria"
-    ],
-    "ar": [
-     "المقهى",
-     "الكافيه",
-     "الكافتيريا"
-    ]
-   },
-   "keywords": {
-    "en": [
+     "food",
+     "eat",
+     "hungry",
+     "lunch",
+     "dinner",
      "coffee",
      "tea",
+     "water",
+     "drink",
      "snack",
-     "drink"
+     "thirsty",
+     "tables",
+     "table"
     ],
     "ar": [
+     "أكل",
+     "اكل",
+     "جوعان",
      "قهوة",
      "شاي",
-     "مشروب"
-    ]
-   },
-   "where": {
-    "en": "Ground floor, left of the main entrance",
-    "ar": "الطابق الأرضي، يسار المدخل الرئيسي"
-   },
-   "directions": {
-    "en": [
-     "The café is on the ground floor, to the left of the main entrance."
+     "ماي",
+     "ماء",
+     "عطشان",
+     "غدا",
+     "عشا"
     ],
-    "ar": [
-     "المقهى في الطابق الأرضي، على يسار المدخل الرئيسي."
+    "hi": [
+     "खाना",
+     "भूख",
+     "कॉफ़ी",
+     "चाय",
+     "पानी",
+     "नाश्ता"
     ]
-   },
-   "walk_minutes": 1,
-   "demo": true
+   }
   },
   {
-   "id": "doers_summit",
+   "id": "meeting_room",
+   "node": "meeting_room",
+   "faces": 180,
    "names": {
     "en": [
-     "Doers Summit",
-     "summit",
-     "main stage",
-     "conference"
+     "meeting room"
     ],
     "ar": [
-     "قمة دورز",
-     "القمة",
-     "المسرح الرئيسي",
-     "المؤتمر"
+     "غرفة الاجتماعات",
+     "غرفة الاجتماع"
+    ],
+    "hi": [
+     "मीटिंग रूम",
+     "बैठक कक्ष"
     ]
    },
    "keywords": {
     "en": [
-     "talk",
-     "session",
-     "agenda",
-     "speaker"
+     "meeting"
     ],
     "ar": [
-     "جلسة",
-     "محاضرة",
-     "برنامج"
-    ]
-   },
-   "where": {
-    "en": "Outside the main entrance, follow the summit signs",
-    "ar": "خارج المدخل الرئيسي، اتبع لافتات القمة"
-   },
-   "directions": {
-    "en": [
-     "Go out of the main entrance and follow the Doers Summit signs.",
-     "Summit staff at the entrance can point the way."
+     "اجتماع"
     ],
-    "ar": [
-     "اخرج من المدخل الرئيسي واتبع لافتات قمة دورز.",
-     "فريق القمة عند المدخل سيرشدك."
+    "hi": [
+     "मीटिंग",
+     "बैठक"
     ]
-   },
-   "tip": {
-    "en": "The full agenda is on doerssummit dot com.",
-    "ar": "البرنامج الكامل على موقع doerssummit.com."
-   },
-   "demo": true
+   }
   },
   {
-   "id": "taxi",
+   "id": "conference_room",
+   "node": "conference_room",
+   "faces": 90,
    "names": {
     "en": [
-     "taxi",
-     "taxi stand",
-     "cab",
-     "pick-up",
-     "uber",
-     "careem"
+     "conference room",
+     "conference hall"
     ],
     "ar": [
-     "تاكسي",
-     "سيارة أجرة",
-     "أوبر",
-     "كريم"
-    ]
-   },
-   "where": {
-    "en": "Just outside the main entrance, on the right",
-    "ar": "خارج المدخل الرئيسي مباشرة، على اليمين"
-   },
-   "directions": {
-    "en": [
-     "Go out of the main entrance.",
-     "The taxi pick-up is just outside, on the right."
+     "قاعة المؤتمرات",
+     "غرفة المؤتمرات"
     ],
-    "ar": [
-     "اخرج من المدخل الرئيسي.",
-     "موقف سيارات الأجرة خارج المدخل مباشرة على اليمين."
-    ]
-   },
-   "walk_minutes": 1,
-   "demo": true
-  },
-  {
-   "id": "parking",
-   "names": {
-    "en": [
-     "parking",
-     "car park",
-     "visitor parking"
-    ],
-    "ar": [
-     "موقف السيارات",
-     "مواقف السيارات",
-     "الباركنج"
+    "hi": [
+     "कॉन्फ़्रेंस रूम",
+     "सम्मेलन कक्ष"
     ]
    },
    "keywords": {
     "en": [
-     "my car",
-     "car"
+     "meeting",
+     "conference",
+     "presentation",
+     "pitch"
     ],
     "ar": [
-     "سيارتي"
-    ]
-   },
-   "where": {
-    "en": "In front of the building",
-    "ar": "أمام المبنى"
-   },
-   "directions": {
-    "en": [
-     "Go out of the main entrance.",
-     "Visitor parking is right in front of the building."
+     "اجتماع",
+     "مؤتمر",
+     "عرض"
     ],
-    "ar": [
-     "اخرج من المدخل الرئيسي.",
-     "مواقف الزوار أمام المبنى مباشرة."
+    "hi": [
+     "मीटिंग",
+     "कॉन्फ़्रेंस"
     ]
-   },
-   "walk_minutes": 2,
-   "demo": true
+   }
   },
   {
-   "id": "silicon_central_mall",
+   "id": "team_tables",
+   "node": "team_tables",
+   "faces": 0,
    "names": {
     "en": [
-     "Silicon Central Mall",
-     "Silicon Central",
-     "the mall"
+     "team tables",
+     "team table",
+     "hackathon tables"
     ],
     "ar": [
-     "سيليكون سنترال مول",
-     "سيليكون سنترال",
-     "المول"
+     "طاولات الفرق",
+     "طاولات الفريق"
+    ],
+    "hi": [
+     "टीम टेबल",
+     "टीम की मेज़"
     ]
    },
    "keywords": {
     "en": [
-     "mall",
-     "shopping",
-     "shops",
-     "cinema",
-     "lulu"
+     "tables",
+     "table",
+     "work",
+     "laptop",
+     "desk",
+     "sit",
+     "teams",
+     "hackers"
     ],
     "ar": [
-     "تسوق",
-     "سينما",
-     "لولو"
-    ]
-   },
-   "where": {
-    "en": "Silicon Central Mall, Dubai Silicon Oasis",
-    "ar": "سيليكون سنترال مول، واحة دبي للسيليكون"
-   },
-   "directions": {
-    "en": [
-     "It's a short taxi ride from here.",
-     "The taxi pick-up is just outside the main entrance, on the right."
+     "شغل",
+     "لابتوب",
+     "أجلس",
+     "اجلس",
+     "فريق"
     ],
-    "ar": [
-     "المول على بُعد مسافة قصيرة بسيارة الأجرة.",
-     "موقف سيارات الأجرة خارج المدخل الرئيسي على اليمين."
+    "hi": [
+     "काम",
+     "लैपटॉप",
+     "बैठना"
     ]
-   },
-   "hours": "08:00-24:00",
-   "tip": {
-    "en": "Lulu Hypermarket and a cinema are inside, with underground parking.",
-    "ar": "يضم هايبرماركت لولو وسينما، مع مواقف تحت الأرض."
-   },
-   "outside": true,
-   "maps_query": "Silicon Central Mall, Dubai Silicon Oasis"
-  },
-  {
-   "id": "friends_avenue_cafe",
-   "names": {
-    "en": [
-     "Friends Avenue Cafe",
-     "Friends Avenue"
-    ],
-    "ar": [
-     "فريندز أفينيو كافيه",
-     "فريندز أفينيو"
-    ]
-   },
-   "keywords": {
-    "en": [
-     "coffee",
-     "cafe"
-    ],
-    "ar": [
-     "قهوة",
-     "مقهى"
-    ]
-   },
-   "where": {
-    "en": "Ground floor of Silicon Central Mall",
-    "ar": "الطابق الأرضي في سيليكون سنترال مول"
-   },
-   "directions": {
-    "en": [
-     "Take a taxi to Silicon Central Mall.",
-     "Friends Avenue Cafe is on the ground floor."
-    ],
-    "ar": [
-     "خذ سيارة أجرة إلى سيليكون سنترال مول.",
-     "المقهى في الطابق الأرضي."
-    ]
-   },
-   "hours": "08:00-24:00",
-   "outside": true,
-   "maps_query": "Silicon Central Mall, Dubai Silicon Oasis"
-  },
-  {
-   "id": "emirates_nbd",
-   "names": {
-    "en": [
-     "Emirates NBD",
-     "ENBD"
-    ],
-    "ar": [
-     "الإمارات دبي الوطني",
-     "بنك الإمارات دبي الوطني"
-    ]
-   },
-   "keywords": {
-    "en": [
-     "bank",
-     "atm",
-     "cash",
-     "money"
-    ],
-    "ar": [
-     "بنك",
-     "البنك",
-     "صراف",
-     "صراف آلي"
-    ]
-   },
-   "where": {
-    "en": "First floor of Silicon Central Mall",
-    "ar": "الطابق الأول في سيليكون سنترال مول"
-   },
-   "directions": {
-    "en": [
-     "Take a taxi to Silicon Central Mall.",
-     "Emirates NBD is on the first floor."
-    ],
-    "ar": [
-     "خذ سيارة أجرة إلى سيليكون سنترال مول.",
-     "بنك الإمارات دبي الوطني في الطابق الأول."
-    ]
-   },
-   "tip": {
-    "en": "The mall is open 08:00 to midnight; branch hours may differ.",
-    "ar": "المول مفتوح من الثامنة صباحاً حتى منتصف الليل، وقد تختلف ساعات الفرع."
-   },
-   "outside": true,
-   "maps_query": "Emirates NBD Silicon Central Mall Dubai Silicon Oasis"
-  },
-  {
-   "id": "dso_masjid",
-   "names": {
-    "en": [
-     "DSO Masjid",
-     "DSO Mosque",
-     "Techno Point mosque"
-    ],
-    "ar": [
-     "مسجد واحة دبي للسيليكون",
-     "مسجد تكنو بوينت"
-    ]
-   },
-   "keywords": {
-    "en": [
-     "mosque",
-     "masjid",
-     "pray",
-     "prayer",
-     "friday prayer"
-    ],
-    "ar": [
-     "مسجد",
-     "جامع",
-     "صلاة",
-     "أصلي",
-     "اصلي"
-    ]
-   },
-   "where": {
-    "en": "Techno Point building, the same building as RIT Dubai",
-    "ar": "مبنى تكنو بوينت، نفس مبنى جامعة RIT دبي"
-   },
-   "directions": {
-    "en": [
-     "It's in the Techno Point building, a short taxi ride from here.",
-     "There is free parking."
-    ],
-    "ar": [
-     "المسجد في مبنى تكنو بوينت، على بُعد مسافة قصيرة بسيارة الأجرة.",
-     "يوجد موقف مجاني."
-    ]
-   },
-   "outside": true,
-   "maps_query": "DSO Masjid Techno Point Dubai Silicon Oasis"
-  },
-  {
-   "id": "al_waha_masjid",
-   "names": {
-    "en": [
-     "Al Waha Masjid",
-     "Al Waha Mosque"
-    ],
-    "ar": [
-     "مسجد الواحة"
-    ]
-   },
-   "keywords": {
-    "en": [
-     "mosque",
-     "masjid"
-    ],
-    "ar": [
-     "مسجد",
-     "جامع"
-    ]
-   },
-   "where": {
-    "en": "In Dubai Silicon Oasis",
-    "ar": "في واحة دبي للسيليكون"
-   },
-   "hours": "04:00-23:00",
-   "outside": true,
-   "maps_query": "Al Waha Masjid Dubai Silicon Oasis"
-  },
-  {
-   "id": "sheikha_ali_mosque",
-   "names": {
-    "en": [
-     "Sheikha Ali Mosque"
-    ],
-    "ar": [
-     "مسجد الشيخة علي"
-    ]
-   },
-   "keywords": {
-    "en": [
-     "mosque",
-     "masjid",
-     "big mosque"
-    ],
-    "ar": [
-     "مسجد",
-     "جامع"
-    ]
-   },
-   "where": {
-    "en": "In Dubai Silicon Oasis, next to Dubai Digital Park. Room for about 650 people.",
-    "ar": "في واحة دبي للسيليكون بجانب دبي ديجيتال بارك، ويتسع لنحو 650 مصلياً."
-   },
-   "outside": true,
-   "maps_query": "Sheikha Ali Mosque Dubai Silicon Oasis"
-  },
-  {
-   "id": "burjeel_dso",
-   "names": {
-    "en": [
-     "Burjeel Medical Center",
-     "Burjeel"
-    ],
-    "ar": [
-     "مركز برجيل الطبي",
-     "برجيل"
-    ]
-   },
-   "keywords": {
-    "en": [
-     "clinic",
-     "doctor",
-     "medical",
-     "hospital",
-     "sick",
-     "unwell"
-    ],
-    "ar": [
-     "عيادة",
-     "طبيب",
-     "دكتور",
-     "مستشفى",
-     "مريض"
-    ]
-   },
-   "where": {
-    "en": "Burjeel Medical Center DSO",
-    "ar": "مركز برجيل الطبي في واحة دبي للسيليكون"
-   },
-   "hours": "07:00-23:00",
-   "tip": {
-    "en": "In an emergency, call 999.",
-    "ar": "في حالات الطوارئ اتصل بالرقم 999."
-   },
-   "outside": true,
-   "maps_query": "Burjeel Medical Center Dubai Silicon Oasis"
-  },
-  {
-   "id": "life_medical_centre",
-   "names": {
-    "en": [
-     "Life Medical Centre",
-     "Life Medical Center"
-    ],
-    "ar": [
-     "لايف ميديكال سنتر"
-    ]
-   },
-   "keywords": {
-    "en": [
-     "clinic",
-     "doctor",
-     "medical",
-     "sick"
-    ],
-    "ar": [
-     "عيادة",
-     "طبيب",
-     "دكتور"
-    ]
-   },
-   "where": {
-    "en": "Life Medical Centre, Dubai Silicon Oasis",
-    "ar": "لايف ميديكال سنتر، واحة دبي للسيليكون"
-   },
-   "hours": "07:00-23:00",
-   "tip": {
-    "en": "In an emergency, call 999.",
-    "ar": "في حالات الطوارئ اتصل بالرقم 999."
-   },
-   "outside": true,
-   "maps_query": "Life Medical Centre Dubai Silicon Oasis"
-  },
-  {
-   "id": "life_pharmacy",
-   "names": {
-    "en": [
-     "Life Pharmacy",
-     "pharmacy",
-     "chemist"
-    ],
-    "ar": [
-     "صيدلية لايف",
-     "الصيدلية",
-     "صيدلية"
-    ]
-   },
-   "keywords": {
-    "en": [
-     "medicine",
-     "medication"
-    ],
-    "ar": [
-     "دواء",
-     "أدوية"
-    ]
-   },
-   "where": {
-    "en": "Palace Towers, Dubai Silicon Oasis",
-    "ar": "بالاس تاورز، واحة دبي للسيليكون"
-   },
-   "hours": "24h",
-   "outside": true,
-   "maps_query": "Life Pharmacy Palace Towers Dubai Silicon Oasis"
-  },
-  {
-   "id": "union_coop",
-   "names": {
-    "en": [
-     "Union Coop"
-    ],
-    "ar": [
-     "الاتحاد التعاونية",
-     "تعاونية الاتحاد"
-    ]
-   },
-   "keywords": {
-    "en": [
-     "supermarket",
-     "groceries",
-     "grocery"
-    ],
-    "ar": [
-     "سوبرماركت",
-     "بقالة"
-    ]
-   },
-   "where": {
-    "en": "Union Coop Silicon Oasis",
-    "ar": "تعاونية الاتحاد، واحة دبي للسيليكون"
-   },
-   "hours": "24h",
-   "outside": true,
-   "maps_query": "Union Coop Silicon Oasis"
-  },
-  {
-   "id": "souq_extra",
-   "names": {
-    "en": [
-     "Souq Extra"
-    ],
-    "ar": [
-     "سوق إكسترا"
-    ]
-   },
-   "keywords": {
-    "en": [
-     "supermarket",
-     "groceries"
-    ],
-    "ar": [
-     "سوبرماركت",
-     "بقالة"
-    ]
-   },
-   "where": {
-    "en": "Souq Extra, Dubai Silicon Oasis",
-    "ar": "سوق إكسترا، واحة دبي للسيليكون"
-   },
-   "hours": "24h",
-   "outside": true,
-   "maps_query": "Souq Extra Dubai Silicon Oasis"
-  },
-  {
-   "id": "bus",
-   "names": {
-    "en": [
-     "bus stop",
-     "bus",
-     "public transport"
-    ],
-    "ar": [
-     "موقف الحافلات",
-     "الباص",
-     "الحافلة"
-    ]
-   },
-   "where": {
-    "en": "Bus routes 50, 320, 365, 366 and X25 serve Dubai Silicon Oasis. Reception can point you to the nearest stop.",
-    "ar": "خطوط الحافلات 50 و320 و365 و366 وX25 تخدم واحة دبي للسيليكون. يمكن لمكتب الاستقبال إرشادك إلى أقرب موقف."
-   },
-   "outside": true
+   }
   }
  ],
- "agent_id": "agent_4001m86cac97egtb840g9whcrbz3"
+ "pronunciation": [
+  {
+   "say": "Dtec",
+   "as": "Dee-tek"
+  },
+  {
+   "say": "DSO",
+   "as": "D S O"
+  },
+  {
+   "say": "Oraseya",
+   "as": "Oh-rah-say-ah"
+  }
+ ],
+ "analysis": {
+  "criteria": [
+   {
+    "id": "no_invented_directions",
+    "name": "No invented directions",
+    "prompt": "Every turn, distance, landmark or stop the agent told the operator came word for word from a tool result (start_route, step_done, update_position or route_status). FAIL if the agent gave the operator any direction that no tool returned, or changed one."
+   },
+   {
+    "id": "operator_lines_english",
+    "name": "Operator lines in English",
+    "prompt": "Every line addressed to the operator was in English and began with 'Operator:'. Lines to the visitor were in the visitor's language. FAIL if a visitor was answered in the wrong language or an operator line was not English."
+   },
+   {
+    "id": "asked_not_guessed",
+    "name": "Asked, never guessed",
+    "prompt": "Whenever the request was vague, matched several places, or was not on the map, the agent asked one short question or said it did not know and offered a person. FAIL if it guessed a place, a position, or invented a place that is not on the floor."
+   },
+   {
+    "id": "clean_stop_and_arrival",
+    "name": "Clean stop and arrival",
+    "prompt": "For every trip that was started: it ended with 'Operator: stop here, please' and an arrival line to the visitor in their language, OR it was explicitly changed to a new destination with the operator told to stop first, OR it was cancelled. FAIL if a trip just trailed off, or an arrival was announced without a stop line."
+   },
+   {
+    "id": "stayed_brief",
+    "name": "Stayed brief",
+    "prompt": "The agent gave one step at a time and kept visitor replies to one or two sentences. FAIL if it listed several steps at once, repeated a step nobody asked for, or lectured."
+   }
+  ],
+  "collect": {
+   "destination": {
+    "type": "string",
+    "description": "The final destination of the trip, in English, e.g. 'second call booth'. Empty if no trip started."
+   },
+   "visitor_language": {
+    "type": "string",
+    "description": "Language code the first visitor spoke, e.g. ar, en, hi, es."
+   },
+   "languages_used": {
+    "type": "string",
+    "description": "All languages spoken by visitors in this conversation, as codes separated by commas."
+   },
+   "destination_changed": {
+    "type": "boolean",
+    "description": "True if a second destination was requested while a trip was in progress."
+   },
+   "unknown_requests": {
+    "type": "string",
+    "description": "Places or things visitors asked for that are NOT on the floor map, in English, separated by commas. Empty if none. This list is used to improve the map."
+   },
+   "position_questions": {
+    "type": "integer",
+    "description": "How many times the agent had to ask where the robot was (what was passed last, or what is next to the robot)."
+   },
+   "human_requested": {
+    "type": "boolean",
+    "description": "True if the agent called request_human or sent the visitor to a person."
+   },
+   "steps_given": {
+    "type": "integer",
+    "description": "How many 'Operator:' walking instructions were given in total."
+   }
+  }
+ },
+ "agent_id": "agent_8901m8739kh0fna9wssypk694eq8",
+ "visitor_lines": {
+  "confirm": {
+   "en": "Shall I take you to the {place}?",
+   "ar": "أوصلك إلى {place}؟",
+   "hi": "क्या मैं आपको {place} ले चलूँ?",
+   "es": "¿Le llevo a {place}?",
+   "fr": "Je vous emmène à {place} ?",
+   "de": "Soll ich Sie zu {place} bringen?",
+   "ru": "Проводить вас: {place}?",
+   "pt": "Levo-o até {place}?",
+   "tr": "Sizi {place} yerine götüreyim mi?",
+   "zh": "我带您去{place}吗？",
+   "ur": "کیا میں آپ کو {place} لے چلوں؟"
+  },
+  "start": {
+   "en": "Okay, we're going to the {place}. Please walk with us.",
+   "ar": "تمام، بنروح إلى {place}. تفضّل امشِ معنا.",
+   "hi": "ठीक है, हम {place} जा रहे हैं। कृपया हमारे साथ चलिए।",
+   "es": "De acuerdo, vamos a {place}. Camine con nosotros, por favor.",
+   "fr": "D'accord, nous allons à {place}. Suivez-nous, s'il vous plaît.",
+   "de": "Gut, wir gehen zu {place}. Bitte kommen Sie mit.",
+   "ru": "Хорошо, идём: {place}. Пожалуйста, идите с нами.",
+   "pt": "Certo, vamos até {place}. Venha connosco, por favor.",
+   "tr": "Tamam, {place} yerine gidiyoruz. Lütfen bizimle yürüyün.",
+   "zh": "好的，我们去{place}。请跟我们走。",
+   "ur": "ٹھیک ہے، ہم {place} جا رہے ہیں۔ براہِ کرم ہمارے ساتھ چلیں۔"
+  },
+  "arrived": {
+   "en": "We've arrived: this is the {place}.",
+   "ar": "وصلنا: هذي {place}.",
+   "hi": "हम पहुँच गए हैं: यह {place} है।",
+   "es": "Hemos llegado: esto es {place}.",
+   "fr": "Nous sommes arrivés : voici {place}.",
+   "de": "Wir sind da: das ist {place}.",
+   "ru": "Мы на месте: это {place}.",
+   "pt": "Chegámos: aqui é {place}.",
+   "tr": "Geldik: burası {place}.",
+   "zh": "我们到了：这里是{place}。",
+   "ur": "ہم پہنچ گئے: یہ {place} ہے۔"
+  },
+  "changed": {
+   "en": "A quick change: we're going to the {new} first. I can take you to the {old} after that.",
+   "ar": "تغيّرت الوجهة: بنروح أول إلى {new}، وبعدها أقدر أوصلك إلى {old}.",
+   "hi": "थोड़ा बदलाव है: हम पहले {new} जा रहे हैं। उसके बाद मैं आपको {old} ले चलूँगा।",
+   "es": "Un cambio: primero vamos a {new}. Después le llevo a {old}.",
+   "fr": "Petit changement : nous allons d'abord à {new}. Ensuite je vous emmène à {old}.",
+   "de": "Kurze Änderung: wir gehen zuerst zu {new}. Danach bringe ich Sie zu {old}.",
+   "ru": "Небольшое изменение: сначала {new}. Потом я провожу вас: {old}.",
+   "pt": "Uma mudança: primeiro vamos a {new}. Depois levo-o a {old}.",
+   "tr": "Küçük bir değişiklik: önce {new} yerine gidiyoruz. Sonra sizi {old} yerine götürürüm.",
+   "zh": "稍作调整：我们先去{new}，之后我再带您去{old}。",
+   "ur": "ایک تبدیلی: پہلے ہم {new} جا رہے ہیں۔ اس کے بعد میں آپ کو {old} لے چلوں گا۔"
+  }
+ }
 }

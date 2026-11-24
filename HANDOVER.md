@@ -1,85 +1,88 @@
-# Handover: Team Hercules, AI Voice Navigator
+# Handover: Team Hercules, AI Voice Navigator (blind navigation)
 
-For the teammate taking over on Tuesday 24 Nov, from 18:00 (Dubai time). Everything you need is in this repo; nothing depends on the previous person's laptop.
+The brief changed on 24 Nov. The code is ready for the new one. The agent is built: **`agent_8901m8739kh0fna9wssypk694eq8`**. The real floor map is still missing, and the demo needs it.
 
-## In one minute
+## Do these first
 
-- We make the **voice and brain** of Humanoid Robot A: a guide in the Dtec lobby that answers visitors in **Arabic and English**.
-- The brain is an **ElevenLabs agent**: `agent_4001m86cac97egtb840g9whcrbz3` (public; the robot only needs this ID).
-- What it knows comes from **one data file**: `sdk/profiles/dtec_navigator.json`. Nothing is "trained": we configure the agent and the data, then run `build`.
-- The robot runs our **SDK bridge**, shipped as one zip: `dist/oasis_voice_robot.zip` (rebuild with `python3 robot/make_package.py`).
-- The **web app** shows check-ins, route QR codes and operator alerts on a screen next to the robot.
+| # | What | Who | Time |
+|---|---|---|---|
+| 1 | **Measure the real floor.** The map in `sdk/profiles/dtec_floor.json` is a made-up layout. Follow [onsite/COLLECT_FLOOR_MAP.md](onsite/COLLECT_FLOOR_MAP.md) | on site | 20 min |
+| 2 | **Rebuild after the map changes**: `cd sdk && python3 -m oasis_voice build` (needs `ELEVENLABS_API_KEY` in `.env`). Same agent, same ID | account owner | 1 min |
+| 3 | **Test it by voice** with two people: one visitor, one operator ([sdk/TEST_CONVERSATIONS.md](sdk/TEST_CONVERSATIONS.md)) | everyone | 30 min |
 
-## Deadlines
+Then: `python3 robot/make_package.py`, send `dist/oasis_voice_robot.zip` to the robot, put the web app online (below).
 
-| When (Dubai) | What |
+## What changed in the brief
+
+- The robot walks, with a MangoBot operator at the controls. The agent guides that operator.
+- Film **three routes**, up to **3 minutes** in total, cuts only between routes: easy, background music, change of destination (the organisers choose the music and the new destination).
+- Visitor, robot **and operator** must be in the shot. At least two languages in every route.
+- Pitch is 8 minutes: 3 pitch, 3 demo, 2 questions.
+- **Teams are being reshuffled.** New team list, robot slots, submission deadline and pitch order come in the next update. Ignore the old times until then.
+
+## Brief against what we built
+
+| Must have | How |
 |---|---|
-| **Tue 19:00** | Robot test round 1 (our slot 3): first run of the SDK on the robot |
-| Tue 20:00–22:00 | Organisers visit teams: show the demo |
-| **Wed 06:30** | Robot round 2: **film the demo** (one unedited take, max 2 min) |
-| **Wed 08:30** | **Submission closes** (aim for 08:00): link, 100 words, video, ≤3 slides, robot take |
-| **Wed 09:20** | Our pitch: 3 min talk, 2 min demo, 2 min questions |
+| Two or three languages in every route | Place names in English, Arabic and Hindi. Greetings and key lines also in Spanish, French, German, Russian, Portuguese, Turkish, Chinese and Urdu; any other language is translated by the AI. Requests in a language without place names are always confirmed first |
+| Translation between visitor and operator | Prompt rules; operator lines start with "Operator:" and are English |
+| Directions step by step | `navigator.py`: one straight walk per step, landmark to stop at |
+| Clarifying question | `find_place`: confirms vague requests, offers options, never guesses |
+| Clear stop, arrival confirmed | `step_done` on the last step: stop line, then arrival in the visitor's language |
+| New route when the destination changes | `start_route` mid-route; asks the operator one question only if the answer changes the route |
+| Stretch: knows where it is without asking | Counts steps; printed QR markers + head camera (`sense.py`) |
+| Stretch: camera confirms the arrival | Marker at the destination |
+| Stretch: visitor switches language mid-route | Language detection, not triggered by the operator's English |
 
-## Done ✅
+LiDAR is not used: on the X2 it needs a SLAM map and relocalisation set up with AgiBot support.
 
-| Item | Where | Checked how |
-|---|---|---|
-| ElevenLabs agent: English + Arabic, language switching, PCM 16000 audio for the robot, place names as speech keywords, 4 tools | built by `sdk` | read back from ElevenLabs; live text conversation worked |
-| Deterministic directions: 23 places with Arabic + English names and routes, clarifying questions, "open now", tips | `sdk/oasis_voice/directory.py`, profile | 22 unit tests; 22 sample questions |
-| Tools: `lookup_place`, `check_in_visitor`, `send_route_to_phone`, `request_operator` (run on the robot / in the browser) | `sdk/oasis_voice/actions.py`, `webapp/public/oasis.js` | browser and Python give identical answers on 22 questions |
-| Robot bridge = organisers' bridge + noise gate + tools + latency log | `sdk/oasis_voice/bridge.py` | **not yet run on the robot** (no ROS on laptops) |
-| Robot package with `run_robot.sh`, `config.env`, health check (`doctor`), fallback to the original bridge | `dist/oasis_voice_robot.zip` | unzipped fresh and ran `doctor` on a laptop |
-| Web app: reception screen, phone route page, operator alert, laptop demo `/kiosk`, test panel `/test` | `webapp/` | 13 automated checks |
-| Second example bot from data only (startup front desk) | `sdk/profiles/startup_office.json` | validated |
-| Pitch material: demo script, 99-word description, 3-slide outline, pitch talk, Q&A | `pitch/` | drafts |
-| On-site guides: what to collect in the building, robot checklist | `onsite/`, `robot/ROBOT_CHECKLIST.md` | |
+## Tested with the live agent (24 Nov, demo map)
 
-## To do, in order
+- **By text:** 9 risky situations, 4 times each, all passed (vague request, second person, "thanks" is not "done", arrival, stop, unknown place).
+- **By voice:** computer-made Arabic and English speech through the robot's noise filter. The whole demo with a change of destination worked. Replies started after about 1.5 seconds (worst 2.1).
+- **Over synthetic music:** usually works, replies about 1.2 to 2.7 seconds. Sometimes a turn is answered late, most often a lone "Done.", so the operator says "Okay, that step is done".
 
-### Remote (you)
+## Never tested yet
 
-1. **Put the web app online (15 min, do before 19:00).** render.com → New Web Service → repo `DTEC-agent` → Root `webapp` → Start `node server.js` → env `TOOL_SECRET=<long word>` → after it is Live add `PUBLIC_URL=<its URL>`. Check `<URL>/health`. Steps: [WALKTHROUGH.md](WALKTHROUGH.md) Part 3.
-2. **Send the on-site teammate:** `dist/oasis_voice_robot.zip`, the Render URL and the secret word. They follow `QUICKSTART.md` inside the zip.
-3. **Voice test on a laptop:** `cd webapp && node server.js`, open `http://localhost:3000/kiosk`, run the demo script in [pitch/demo_script.md](pitch/demo_script.md). Fix wrong answers in the profile, then `cd sdk && python3 -m oasis_voice build`.
-4. **Real directions:** when photos/voice notes arrive from the building, update each place in `sdk/profiles/dtec_navigator.json` (English + Arabic steps, `walk_minutes`, remove `"demo": true`). Then `validate` → `ask "<place>"` → `build` → `python3 robot/make_package.py` → send the new zip (or just the new profile JSON) to the robot.
-5. **Arabic check:** an Arabic speaker listens to the greeting and a few answers. If the voice sounds bad, add `"voice": {"voice_id": "<better voice>"}` to the profile and `build`.
-6. **Backup demo video:** screen-record `/kiosk` (with sound) running the demo script.
-7. **Slides:** 3 slides from [pitch/slides_and_pitch.md](pitch/slides_and_pitch.md), plus a photo of the robot/lobby from the venue.
-8. **Submit by Wed 08:00:** make the GitHub repo public just before, then fill in the form ([pitch/submission.md](pitch/submission.md)).
+- **Real people, a real room, real music** (music with singing is harder).
+- **The bridge on the robot.** Tested on a laptop with fake ROS only. The setup now follows what Denis (Denenis Lab) got working on the robot on 24 Nov: no container, AimDK at `/agibot/software/common`, raw mic (no wake word), half duplex, Lumi switched off. `run_robot.sh setup / takeover / restore` do those steps.
+- **An English-speaking visitor and the operator on one mic.** Visitor and operator are told apart by what they say. If it mixes them up, have the operator start with "Operator here".
+- **The voice.** Now "Layan" (Saudi, professional) from the ElevenLabs library. Five alternatives, same text, are in `dist/voices/`: listen, pick one, put its id in `"voice": {"voice_id": ...}` and build. All five are already added to the team account. The operator can have their own: `"supported_voices": [{"label": "Operator", "voice_id": "<id>", "language": "en"}]`.
+- **Marker reading with the real camera.** Print two and try them before relying on them.
+- **Arabic and Hindi wording.** Have native speakers check `VISITOR_LINES` in `navigator.py` and the names in the profile.
 
-### On site
+If `build` is refused because of `scribe_v3_live`, delete `"asr_provider"` from the profile and build again.
 
-1. **Robot round 1 (Tue 19:00):** copy the zip to `/home/agi/` on PC2 → `./run_robot.sh doctor` → `./run_robot.sh`. Ask for the wake word, the robot's standing spot, the external mic and the AimDK path. Keep a video call open with the remote teammate.
-2. **Walk the building** from the robot's spot and send directions ([onsite/COLLECT_DIRECTIONS.md](onsite/COLLECT_DIRECTIONS.md)).
-3. **Ask the organisers** that remote teammates are fine.
-4. **Wed 06:30:** reset the screen (`<URL>/test` → Reset), film one take with the robot **and** the screen in view.
-5. **Wed 09:20:** pitch.
+## ElevenLabs features in use (for the "best ElevenLabs build" pitch)
 
-## Settings and secrets
+| Feature | What it does for us |
+|---|---|
+| Agents + 7 client tools | the planner runs on the robot; the AI never invents a route |
+| Scribe v3 Live, keywords, language detection, 10 language presets | Arabic, English, Hindi plus Spanish, French, German, Russian, Portuguese, Turkish, Chinese, Urdu |
+| **Multi-voice**: a second voice for the operator | every "Operator:" line is spoken in a different voice (River); the visitor keeps Layan. Listen: `dist/agent_two_voices.wav` |
+| **Evaluation criteria + data collection** | ElevenLabs scores every conversation on 5 criteria (no invented directions, English to the operator, asked not guessed, clean stop and arrival, stayed brief) and extracts destination, languages, unknown requests, position questions, handovers |
+| **Post-call webhook** → `/api/elevenlabs/post-call` | the live screen gets a trip log and "what visitors asked for that is not on the map". Needs the web app online (below) |
+| **Agent tests** (9, in the ElevenLabs dashboard) | `python3 -m oasis_voice eltest --repeat 3`. Includes "thank you is not a finished step", "stop is obeyed at once", "Spanish confirmed first" |
+| Pronunciation dictionary | Dtec, DSO, Oraseya |
+| Soft-timeout filler in 11 languages, speculative turns, interruption ignore terms | "One moment" while thinking; "okay/hmm/طيب/ठीक है" do not cut the robot off |
+| First-message override + contextual updates | resumes the trip after a network drop; camera markers arrive as sensor messages |
 
-- Copy `.env.example` to `.env` in the repo root. `ELEVENLABS_API_KEY` is needed only to run `build`; get it privately from the ElevenLabs account owner. Never commit it or paste it in chats/docs.
-- The robot needs **no** API key: only `WEBAPP_URL` and `TOOL_SECRET` in its `config.env`.
-- After the hackathon, the account owner should delete the API key that was shared during the day.
+**Model choice (24 Nov):** DeepSeek v4.1 flash (the default) keeps the agent fast (about 1.5 s) and passed all 51 live multi-turn cases. Claude Haiku 4.5 passed all 27 ElevenLabs test runs but was slower and mislabelled Spanish and French visitors as English in live runs. Two ElevenLabs tool tests ("start_at" and "step_done") are flaky on DeepSeek in the test harness while the same cases pass live; treat them as known.
 
-## Useful commands
+## Where the robot thinks it is
 
-```bash
-cd sdk
-python3 -m oasis_voice validate                       # check the data file
-python3 -m oasis_voice ask "where can I pray"         # test directions offline
-python3 -m oasis_voice ask "وين المصعد" --lang ar
-python3 -m oasis_voice chat --say "Where is the bank?"   # talk to the live agent by text (pip3 install websocket-client)
-python3 -m oasis_voice build                          # push data/prompt changes to the agent (same ID)
-python3 -m unittest discover -s tests                 # 22 tests
-cd ../webapp && npm test && node test/parity.mjs      # web app checks
-cd .. && python3 robot/make_package.py                # rebuild dist/oasis_voice_robot.zip
-```
+It counts: the start spot, then every step the operator reports as done. When the trip ends at booth 3, it knows it is at booth 3 and the next visitor is guided from there. People can correct it ("we are at the main junction"), and printed markers let the camera confirm it. The `/live` screen shows the position and where it came from. **Restart the bridge only at the start spot**; between visitors leave it running.
 
-## Known limits and risks
+## The robot does not walk from our code
 
-- **The SDK bridge has not run on the real robot yet.** Its ROS part is the organisers' code unchanged. If it fails, the zip has the original bridge as a fallback (it talks, but without place lookup and actions).
-- **The ElevenLabs dashboard "Test" button can't run our tools.** Use `/kiosk` or `oasis_voice chat` to test.
-- **Inside-building directions are demo data** until the real walk is added.
-- **Free Render sleeps** when unused (about a minute to wake). Open `<URL>/screen` before each robot slot.
-- **Robot data comes from the zip:** after changing directions, the robot needs the new profile file too.
-- The ElevenLabs account has 4 unused tools from an earlier failed build; harmless, delete if you like.
+By the new brief the MangoBot operator walks the robot and our agent only tells them where to go. Moving the robot from code is out of scope and against the robot rules, so there is no walking code here and there must not be.
+
+## Web app online (15 min)
+
+render.com → New Web Service → repo → Root `webapp` → Start `node server.js` → env `TOOL_SECRET=<long word>`, then `PUBLIC_URL=<its URL>`. Check `<URL>/health`.
+
+Then, once, with the URL in `.env` as `WEBAPP_URL=https://...`: `cd sdk && python3 -m oasis_voice build`. It registers the ElevenLabs post-call webhook and prints a **webhook secret**: add it on Render as `ELEVENLABS_WEBHOOK_SECRET` and redeploy. From then on every finished conversation appears on `/live` within a minute. The signature check is unit-tested but has not yet been exercised against a real ElevenLabs delivery: after the first conversation, check the Render log for `/api/elevenlabs/post-call 200`; a `401` means the secret is wrong. Free Render sleeps: open `/live` before each slot. After changing the profile run `python3 -m oasis_voice export` (or `build`) and push, so the site gets the new map.
+
+## Secrets
+
+Copy `.env.example` to `.env`. Only `build` needs the API key; the robot needs none. Never commit it. Delete keys shared during the day after the hackathon.

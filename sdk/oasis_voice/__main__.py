@@ -3,13 +3,17 @@
   python3 -m oasis_voice validate              check the profile data file
   python3 -m oasis_voice ask "where is the bank" [--lang ar]
                                                test the deterministic directory (offline)
+  python3 -m oasis_voice routes                print every route on the floor map, to walk and check
+  python3 -m oasis_voice walk kitchen          play the operator: follow a route by typing (no agent, no internet)
+  python3 -m oasis_voice export                refresh the web app's copy of the profile without a build
   python3 -m oasis_voice prompt                print the agent instructions made from the profile
   python3 -m oasis_voice build [--dry-run]     create/update the ElevenLabs agent (needs ELEVENLABS_API_KEY)
+  python3 -m oasis_voice eltest [--new]        run our success criteria as ElevenLabs agent tests
   python3 -m oasis_voice chat [--say "..."]    text chat with the agent, tools run locally
   python3 -m oasis_voice doctor [--laptop]     check everything the robot needs
   python3 -m oasis_voice bridge                run on the robot (needs ROS 2 + AimDK)
 
-Every command takes --profile PATH (default: profiles/dtec_navigator.json).
+Every command takes --profile PATH (default: profiles/dtec_floor.json).
 Settings are read from a .env file in the repo root or the current folder.
 """
 
@@ -22,7 +26,7 @@ from . import __version__
 from .profile import ProfileError, load_profile
 
 SDK_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-DEFAULT_PROFILE = os.path.join(SDK_DIR, "profiles", "dtec_navigator.json")
+DEFAULT_PROFILE = os.path.join(SDK_DIR, "profiles", "dtec_floor.json")
 SETTINGS = ("ELEVENLABS_API_KEY", "ELEVENLABS_AGENT_ID", "WEBAPP_URL", "TOOL_SECRET")
 
 
@@ -51,13 +55,14 @@ def agent_id_for(profile, env):
 
 def main(argv=None):
     ap = argparse.ArgumentParser(prog="oasis_voice", description=f"Oasis Voice SDK {__version__}")
-    ap.add_argument("command", choices=["validate", "ask", "prompt", "build", "chat", "bridge", "doctor"])
-    ap.add_argument("text", nargs="?", default="", help="for 'ask': what the visitor said")
+    ap.add_argument("command", choices=["validate", "ask", "prompt", "build", "chat", "bridge", "doctor", "routes", "walk", "export", "eltest"])
+    ap.add_argument("text", nargs="?", default="", help="for 'ask' and 'walk': what the visitor said")
     ap.add_argument("--profile", default=DEFAULT_PROFILE)
     ap.add_argument("--lang", default="en")
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--new", action="store_true", help="for 'build': make a new agent instead of updating")
     ap.add_argument("--say", action="append", help="for 'chat': send these messages, then exit")
+    ap.add_argument("--repeat", type=int, default=1, help="for 'eltest': run every test this many times")
     ap.add_argument("--laptop", action="store_true", help="for 'doctor': skip the robot-only checks")
     args = ap.parse_args(argv)
 
@@ -68,8 +73,28 @@ def main(argv=None):
     env = load_settings()
 
     if args.command == "validate":
+        if profile.get("floor", {}).get("demo"):
+            print("NOTE: the floor layout is still demo data (floor.demo). See onsite/COLLECT_FLOOR_MAP.md.")
         print(f"OK: {profile['bot']['name']} · {len(profile['places'])} places · "
               f"languages {[profile['languages']['default']] + profile['languages'].get('others', [])}")
+        return
+
+    if args.command in ("routes", "walk"):
+        if not profile.get("floor"):
+            sys.exit("This profile has no floor map.")
+        from .walk import routes, walk
+        routes(profile) if args.command == "routes" else walk(profile, args.text, args.lang)
+        return
+
+    if args.command == "export":
+        from .builder import export_for_web, load_state
+        export_for_web(profile, load_state(profile["bot"]["id"]).get("agent_id", ""))
+        print("Wrote webapp/public/profile.json")
+        return
+
+    if args.command == "ask" and profile.get("floor"):
+        from .navigator import Navigator
+        print(json.dumps(Navigator(profile).find(args.text, args.lang), ensure_ascii=False, indent=2))
         return
 
     if args.command == "ask":
@@ -88,11 +113,20 @@ def main(argv=None):
         if not key and not args.dry_run:
             sys.exit("Put ELEVENLABS_API_KEY=... in the .env file (copy .env.example). Never paste it in a chat.")
         try:
-            agent_id = build(profile, key, dry_run=args.dry_run, new=args.new)
+            hook = env.get("WEBAPP_URL", "").rstrip("/")
+            hook = hook + "/api/elevenlabs/post-call" if hook.startswith("https://") else ""
+            agent_id = build(profile, key, dry_run=args.dry_run, new=args.new, webhook_url=hook)
         except BuildError as e:
             sys.exit(str(e))
         print(f"\nDone. Agent ID: {agent_id}")
         return
+
+    if args.command == "eltest":
+        from .eltest import run as eltest
+        key = env.get("ELEVENLABS_API_KEY", "")
+        if not key:
+            sys.exit("Put ELEVENLABS_API_KEY=... in the .env file.")
+        sys.exit(0 if eltest(profile, key, new=args.new, repeat=args.repeat) else 1)
 
     if args.command == "doctor":
         from .doctor import run as doctor

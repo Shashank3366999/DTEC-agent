@@ -48,7 +48,18 @@ def run(profile, agent_id, env, robot=True):
         results.append(_ok("AimDK messages found") if _try_import("aimdk_msgs") else
                        _bad("AimDK messages not found", "source <aimdk path>/install/setup.bash (ask the MangoBot engineer)"))
 
+    if robot:
+        import os
+        results.append(_ok("pylib folder present (./run_robot.sh setup was run)") if os.path.isdir("pylib") or _try_import("websocket") else
+                       _bad("no pylib folder", "./run_robot.sh setup"))
     results.append(_ok(f"profile OK: {profile['bot']['name']}, {len(profile['places'])} places"))
+    floor = profile.get("floor")
+    if floor:
+        results.append(_ok("floor map is the real one") if not floor.get("demo") else
+                       _bad("the floor map is still demo data", "Put the on-site map in the profile and delete floor.demo"))
+        if robot:
+            print(("  OK    OpenCV found: camera markers on" if _try_import("cv2") else
+                   "  NOTE  OpenCV not found: no camera markers, the robot counts steps (pip3 install opencv-python-headless)"))
     results.append(_ok(f"agent ID {agent_id}") if agent_id else
                    _bad("no agent ID", "Check sdk/state/<bot>.json, or export ELEVENLABS_AGENT_ID=..."))
 

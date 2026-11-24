@@ -3,7 +3,12 @@
 // The ElevenLabs agent calls two webhook tools here:
 //   POST /api/check-in     -> tells "reception" a visitor has arrived
 //   POST /api/send-route   -> makes a route card the visitor opens on their phone
+//   POST /api/elevenlabs/post-call -> ElevenLabs post-call webhook (HMAC): every conversation's analysis -> trip log
+//   POST /api/nav          -> blind navigation: the live route (sent by the robot bridge or the laptop demo)
 // Screens:
+//   /live     live route: floor map, where the robot is, what the operator was told
+//   /walk     walk the floor with a phone and check the directions (no agent needed)
+//   /markers  QR markers to print for the robot's camera
 //   /screen   reception screen next to the robot (live, shows check-ins + QR for the latest route)
 //   /r/<id>   the route card the visitor opens on their phone
 //   /kiosk    laptop demo: the ElevenLabs widget next to the live screen (backup demo)
@@ -14,6 +19,7 @@
 //   TOOL_SECRET  if set, tool calls must send header  x-tool-secret: <value>
 //   PUBLIC_URL   base URL used in links and QR codes, e.g. https://hercules.onrender.com
 //   DATA_FILE    where to save data (default ./data.json)
+//   ELEVENLABS_WEBHOOK_SECRET  secret of the ElevenLabs post-call webhook (printed by `oasis_voice build`)
 
 import http from "node:http";
 import fs from "node:fs";
@@ -25,21 +31,24 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PORT = Number(process.env.PORT || 3000);
 const TOOL_SECRET = (process.env.TOOL_SECRET || "").trim();
 const PUBLIC_URL = (process.env.PUBLIC_URL || "").trim().replace(/\/+$/, "");
+const WEBHOOK_SECRET = (process.env.ELEVENLABS_WEBHOOK_SECRET || "").trim();
 const DATA_FILE = process.env.DATA_FILE || path.join(__dirname, "data.json");
 const PUBLIC_DIR = path.join(__dirname, "public");
 const MAX_ITEMS = 50;
 const MAX_BODY = 32 * 1024;
 
 // ------------------------------------------------------------------ storage
-let db = { checkins: [], routes: [], operator_calls: [] };
+let db = { checkins: [], routes: [], operator_calls: [], trips: [] };
 try {
-  db = { checkins: [], routes: [], operator_calls: [], ...JSON.parse(fs.readFileSync(DATA_FILE, "utf8")) };
+  db = { checkins: [], routes: [], operator_calls: [], trips: [], ...JSON.parse(fs.readFileSync(DATA_FILE, "utf8")) };
 } catch {
   /* first run: start empty */
 }
 function save() {
   fs.writeFile(DATA_FILE, JSON.stringify(db, null, 2), () => {});
 }
+
+let nav = null; // live route, kept in memory only
 
 // ------------------------------------------------------------------ live updates (Server-Sent Events)
 const listeners = new Set();
@@ -229,6 +238,63 @@ function handleOperator(body) {
   ];
 }
 
+// ElevenLabs signs each webhook: ElevenLabs-Signature: t=<unix seconds>,v0=<hmac sha256 hex of "<t>.<raw body>">
+function webhookSignatureOk(rawBody, header) {
+  if (!WEBHOOK_SECRET) return false;
+  const parts = Object.fromEntries(String(header || "").split(",").map((p) => p.trim().split("=")));
+  if (!parts.t || !parts.v0) return false;
+  if (Math.abs(Date.now() / 1000 - Number(parts.t)) > 30 * 60) return false;
+  const expect = crypto.createHmac("sha256", WEBHOOK_SECRET).update(`${parts.t}.${rawBody}`).digest("hex");
+  const a = Buffer.from(parts.v0), b = Buffer.from(expect);
+  return a.length === b.length && crypto.timingSafeEqual(a, b);
+}
+
+function handlePostCall(body) {
+  if (body.type !== "post_call_transcription") return [200, { ok: true, ignored: body.type }];
+  const d = body.data || {}, an = d.analysis || {}, got = an.data_collection_results || {}, crit = an.evaluation_criteria_results || {};
+  const val = (k) => (got[k] && got[k].value != null ? got[k].value : null);
+  const trip = {
+    id: clean(d.conversation_id, 80) || newId(),
+    agent_id: clean(d.agent_id, 80),
+    duration_secs: Number((d.metadata || {}).call_duration_secs) || 0,
+    summary: clean(an.transcript_summary, 600),
+    destination: clean(val("destination"), 120),
+    visitor_language: clean(val("visitor_language"), 20),
+    languages_used: clean(val("languages_used"), 80),
+    destination_changed: val("destination_changed") === true,
+    unknown_requests: clean(val("unknown_requests"), 300),
+    position_questions: Number(val("position_questions")) || 0,
+    human_requested: val("human_requested") === true,
+    steps_given: Number(val("steps_given")) || 0,
+    scores: Object.fromEntries(Object.entries(crit).map(([k, v]) => [clean(k, 60), clean((v || {}).result, 20)])),
+    created_at: new Date().toISOString(),
+  };
+  db.trips = db.trips.filter((t) => t.id !== trip.id);
+  pushLimited(db.trips, trip);
+  save();
+  broadcast("trip", trip);
+  return [200, { ok: true }];
+}
+
+const idList = (v) => (Array.isArray(v) ? v.slice(0, 60).map((x) => clean(x, 60)) : null);
+function handleNav(body) {
+  nav = {
+    walking: body.walking === true,
+    at: clean(body.at, 60),
+    between: idList(body.between),
+    path: idList(body.path) || [],
+    heading: typeof body.heading === "number" ? body.heading : null,
+    step: Number(body.step) || 0,
+    steps_left: Number(body.steps_left) || 0,
+    updated_at: new Date().toISOString(),
+  };
+  for (const k of ["source", "destination", "destination_node", "instruction", "visitor_language", "pending", "say_operator", "say_visitor", "status"]) {
+    nav[k] = clean(body[k], 500);
+  }
+  broadcast("nav", nav);
+  return [200, { ok: true }];
+}
+
 // ------------------------------------------------------------------ static files
 const TYPES = {
   ".html": "text/html; charset=utf-8",
@@ -264,19 +330,39 @@ const server = http.createServer(async (req, res) => {
       return res.end();
     }
 
+    // --- ElevenLabs post-call webhook (signed; needs the raw body)
+    if (req.method === "POST" && p === "/api/elevenlabs/post-call") {
+      const chunks = [];
+      let size = 0;
+      await new Promise((ok, bad) => {
+        req.on("data", (c) => { size += c.length; if (size > 4 * 1024 * 1024) { bad(new Error("body too large")); req.destroy(); } else chunks.push(c); });
+        req.on("end", ok);
+        req.on("error", bad);
+      });
+      const raw = Buffer.concat(chunks).toString("utf8");
+      if (!webhookSignatureOk(raw, req.headers["elevenlabs-signature"])) {
+        console.log(new Date().toISOString(), p, 401, WEBHOOK_SECRET ? "bad signature" : "ELEVENLABS_WEBHOOK_SECRET not set");
+        return sendJson(res, 401, { ok: false, message: "bad signature" });
+      }
+      const [status, out] = handlePostCall(JSON.parse(raw));
+      console.log(new Date().toISOString(), p, status, raw.slice(0, 200));
+      return sendJson(res, status, out);
+    }
+
     // --- tools called by the ElevenLabs agent
-    if (req.method === "POST" && (p === "/api/check-in" || p === "/api/send-route" || p === "/api/operator")) {
+    if (req.method === "POST" && ["/api/check-in", "/api/send-route", "/api/operator", "/api/nav"].includes(p)) {
       if (!authorized(req)) return sendJson(res, 401, { ok: false, message: "wrong or missing x-tool-secret" });
       const body = await readBody(req);
       const [status, out] =
-        p === "/api/check-in" ? handleCheckIn(body) : p === "/api/operator" ? handleOperator(body) : handleSendRoute(body, req);
+        p === "/api/nav" ? handleNav(body) : p === "/api/check-in" ? handleCheckIn(body) : p === "/api/operator" ? handleOperator(body) : handleSendRoute(body, req);
       console.log(new Date().toISOString(), p, status, JSON.stringify(body).slice(0, 300));
       return sendJson(res, status, out);
     }
 
     if (req.method === "POST" && p === "/api/reset") {
       if (!authorized(req)) return sendJson(res, 401, { ok: false, message: "wrong or missing x-tool-secret" });
-      db = { checkins: [], routes: [], operator_calls: [] };
+      db = { checkins: [], routes: [], operator_calls: [], trips: [] };
+      nav = null;
       save();
       broadcast("reset", {});
       return sendJson(res, 200, { ok: true });
@@ -286,6 +372,8 @@ const server = http.createServer(async (req, res) => {
     if (req.method === "GET" && p === "/api/state") {
       const base = baseUrl(req);
       return sendJson(res, 200, {
+        nav,
+        trips: db.trips.slice(0, 20),
         checkins: db.checkins.slice(0, 20),
         operator_calls: db.operator_calls.slice(0, 5),
         routes: db.routes.slice(0, 20).map((r) => ({ ...r, url: `${base}/r/${r.id}` })),
@@ -313,6 +401,7 @@ const server = http.createServer(async (req, res) => {
     if (req.method === "GET") {
       if (p === "/") return serveFile(res, "index.html");
       if (p === "/screen") return serveFile(res, "screen.html");
+      if (["/live", "/walk", "/markers"].includes(p)) return serveFile(res, p.slice(1) + ".html");
       if (p === "/kiosk") return serveFile(res, "kiosk.html");
       if (p === "/test") return serveFile(res, "test.html");
       if (p.startsWith("/r/")) return serveFile(res, "route.html");

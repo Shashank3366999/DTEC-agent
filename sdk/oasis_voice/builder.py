@@ -69,6 +69,7 @@ def _tool_body(spec):
                 "properties": {k: {"type": "string", "description": d} for k, d in spec["parameters"].items()},
                 "required": spec["required"],
             },
+            **spec.get("config", {}),
         }
     }
 
@@ -92,7 +93,8 @@ def save_state(bot_id, state):
         f.write("\n")
 
 
-def agent_body(profile, tool_ids):
+def agent_body(profile, tool_ids, state_extra=None, webhook_id=""):
+    state_extra = state_extra or {}
     voice = profile.get("voice", {})
     en_first, other_firsts = first_messages(profile)
     directory = Directory(profile)
@@ -116,21 +118,62 @@ def agent_body(profile, tool_ids):
     }
     if voice.get("llm"):
         prompt["llm"] = voice["llm"]
+    if voice.get("supported_voices"):  # e.g. [{"label": "Operator", "voice_id": "...", "language": "en"}]
+        tts["supported_voices"] = voice["supported_voices"]
+    if profile.get("floor"):
+        tts["expressive_mode"] = False  # no "[happy]" tags: a calm voice that fits a robot
+    asr = {"user_input_audio_format": "pcm_16000", "keywords": keywords}
+    if voice.get("asr_provider"):
+        asr["provider"] = voice["asr_provider"]
+    turn = {"turn_eagerness": voice.get("turn_eagerness", DEFAULT_TURN_EAGERNESS)}
+    if voice.get("interruption_ignore_terms"):  # "okay", "hmm" from a visitor must not cut the robot off
+        turn["interruption_ignore_terms"] = voice["interruption_ignore_terms"]
+    if "speculative_turn" in voice:
+        turn["speculative_turn"] = bool(voice["speculative_turn"])
+    soft = voice.get("soft_timeout", {})
+    if soft:  # a filler while the model thinks, so a gap never feels broken
+        turn["soft_timeout_config"] = {"timeout_seconds": 3.0, "message": soft.get("en", "One moment."), "use_llm_generated_message": False}
+    if state_extra.get("pronunciation"):
+        tts["pronunciation_dictionary_locators"] = [state_extra["pronunciation"]]
+    platform = {"auth": {"enable_auth": False}}
+    analysis = profile.get("analysis", {})
+    if analysis.get("criteria"):  # ElevenLabs scores every conversation against these, visible in the dashboard
+        platform["evaluation"] = {"criteria": [
+            {"id": c["id"], "name": c["name"], "type": "prompt", "conversation_goal_prompt": c["prompt"]}
+            for c in analysis["criteria"]]}
+    if analysis.get("collect"):  # ...and extracts these fields from every conversation
+        platform["data_collection"] = {k: {"type": v["type"], "description": v["description"]}
+                                       for k, v in analysis["collect"].items()}
+    if webhook_id:
+        platform["workspace_overrides"] = {"webhooks": {"post_call_webhook_id": webhook_id, "events": ["transcript"]}}
+    extra = {}
+    if profile.get("floor"):
+        # The operator and the visitor are two people: don't flip language on the operator's English "done".
+        prompt["built_in_tools"]["language_detection"]["description"] = (
+            "Call only when the VISITOR starts speaking another language. Never call it for the operator's "
+            "short English reports such as 'done' or 'I'm there'.")
+        turn["turn_timeout"] = 30  # quiet while walking is normal (the bridge also sends user_activity)
+        extra["conversation"] = {"max_duration_seconds": 3600}
+        # lets the bridge carry on mid-route after the network drops
+        platform["overrides"] = {"conversation_config_override": {"agent": {"first_message": True}}}
     return {
         "name": f"{profile['bot']['name']} ({profile['bot']['id']})",
         "conversation_config": {
             "agent": {"first_message": en_first, "language": profile["languages"]["default"], "prompt": prompt},
-            "language_presets": {lang: {"overrides": {"agent": {"first_message": msg}}}
+            "language_presets": {lang: {"overrides": {"agent": {"first_message": msg}},
+                                        **({"soft_timeout_translation": {"source_hash": "", "text": soft[lang]}}
+                                           if soft.get(lang) and lang != "en" else {})}
                                  for lang, msg in other_firsts.items()},
             "tts": tts,
-            "asr": {"user_input_audio_format": "pcm_16000", "keywords": keywords},
-            "turn": {"turn_eagerness": voice.get("turn_eagerness", DEFAULT_TURN_EAGERNESS)},
+            "asr": asr,
+            "turn": turn,
+            **extra,
         },
-        "platform_settings": {"auth": {"enable_auth": False}},
+        "platform_settings": platform,
     }
 
 
-def build(profile, api_key, dry_run=False, new=False, log=print):
+def build(profile, api_key, dry_run=False, new=False, log=print, webhook_url=""):
     api = ElevenLabs(api_key, dry_run, log)
     bot_id = profile["bot"]["id"]
     state = {} if new else load_state(bot_id)
@@ -151,7 +194,31 @@ def build(profile, api_key, dry_run=False, new=False, log=print):
         if not dry_run:  # remember new tools even if the agent update below fails
             save_state(bot_id, {**state, "tools": tools_state})
 
-    body = agent_body(profile, tool_ids)
+    extra = {}
+    if profile.get("pronunciation"):
+        rules = [{"string_to_replace": r["say"], "type": "alias", "alias": r["as"]} for r in profile["pronunciation"]]
+        h = _hash(rules)
+        saved = state.get("pronunciation", {})
+        if saved.get("hash") == h:
+            extra["pronunciation"] = saved["locator"]
+        else:
+            log("Creating pronunciation dictionary…")
+            out = api.call("POST", "/v1/pronunciation-dictionaries/add-from-rules",
+                           {"name": f"{bot_id} names", "rules": rules})
+            extra["pronunciation"] = {"pronunciation_dictionary_id": out.get("id", "DRY"), "version_id": out.get("version_id", "DRY")}
+            state["pronunciation"] = {"hash": h, "locator": extra["pronunciation"]}
+    webhook_id = state.get("webhook", {}).get("id", "")
+    if webhook_url:
+        if state.get("webhook", {}).get("url") != webhook_url:
+            log(f"Creating post-call webhook -> {webhook_url}")
+            out = api.call("POST", "/v1/workspace/webhooks",
+                           {"settings": {"auth_type": "hmac", "name": f"{bot_id} post-call", "webhook_url": webhook_url}})
+            webhook_id = out.get("webhook_id", "DRY")
+            state["webhook"] = {"id": webhook_id, "url": webhook_url}
+            if out.get("webhook_secret"):
+                log("\n  Webhook secret (put it in the web app as ELEVENLABS_WEBHOOK_SECRET, never in git):\n  "
+                    + out["webhook_secret"] + "\n")
+    body = agent_body(profile, tool_ids, extra, webhook_id)
     if state.get("agent_id"):
         log(f"Updating agent {state['agent_id']}…")
         api.call("PATCH", f"/v1/convai/agents/{state['agent_id']}", body)
@@ -161,7 +228,7 @@ def build(profile, api_key, dry_run=False, new=False, log=print):
         agent_id = api.call("POST", "/v1/convai/agents/create", body)["agent_id"]
 
     if not dry_run:
-        save_state(bot_id, {"agent_id": agent_id, "tools": tools_state})
+        save_state(bot_id, {**state, "agent_id": agent_id, "tools": tools_state})
         export_for_web(profile, agent_id)
     return agent_id
 
@@ -172,5 +239,7 @@ def export_for_web(profile, agent_id):
         return
     clean = {k: v for k, v in profile.items() if not k.startswith("_")}
     clean["agent_id"] = agent_id
+    from .navigator import VISITOR_LINES
+    clean["visitor_lines"] = VISITOR_LINES
     with open(os.path.join(WEB_PUBLIC, "profile.json"), "w", encoding="utf-8") as f:
         json.dump(clean, f, ensure_ascii=False, indent=1)

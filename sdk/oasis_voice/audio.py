@@ -5,6 +5,9 @@ Noise gate
   through sound that is clearly louder (a person talking to the robot). A short
   "pre-roll" keeps the first syllable, and a "hangover" keeps the end of a sentence.
   Everything else is replaced with silence, so ElevenLabs hears clean turns.
+  Steady music also raises the level: it never pauses, so its quiet moments are loud,
+  and the gate closes on it again after a few seconds. The threshold is capped so that
+  a person next to the robot always gets through.
 
 Latency meter
   Time from the visitor's last loud sound to the first audio of the reply.
@@ -26,8 +29,11 @@ def rms(pcm):
 
 
 class NoiseGate:
-    def __init__(self, min_rms=350.0, ratio=2.5, hangover_s=0.7, preroll_s=0.3, chunk_s=0.1, enabled=True):
+    def __init__(self, min_rms=350.0, ratio=2.5, hangover_s=0.7, preroll_s=0.3, chunk_s=0.1, enabled=True,
+                 max_rms=2500.0, window_s=3.0):
         self.min_rms = min_rms
+        self.max_rms = max(max_rms, min_rms)
+        self.recent = collections.deque(maxlen=max(1, int(window_s / chunk_s)))
         self.ratio = ratio
         self.hang_chunks = max(1, int(hangover_s / chunk_s))
         self.preroll = collections.deque(maxlen=max(1, int(preroll_s / chunk_s)))
@@ -39,13 +45,16 @@ class NoiseGate:
 
     @property
     def threshold(self):
-        return max(self.min_rms, self.floor * self.ratio)
+        return min(self.max_rms, max(self.min_rms, self.floor * self.ratio))
 
     def process(self, chunk, vad_active=None):
         """Return a list of chunks to send now (empty list = send silence instead)."""
         if not self.enabled:
             return [chunk]
         level = rms(chunk)
+        self.recent.append(level)
+        if len(self.recent) == self.recent.maxlen:  # people pause between words, music does not
+            self.floor = max(self.floor, sorted(self.recent)[len(self.recent) // 5])
         loud = level > self.threshold or bool(vad_active)
         if loud:
             self.last_loud = time.monotonic()
