@@ -380,6 +380,7 @@ class BridgeTest(unittest.TestCase):
 
     def test_raw_mic_is_muted_while_the_speaker_reference_is_loud(self):
         import array
+        self.bridge_mod.REF_MUTE_RMS = 300  # the feature is off by default; test it switched on
         data = array.array("h")
         for _ in range(50):
             data.extend([100, 200, 300, 400, 30000, 30000])  # the robot's own voice in the reference channels

@@ -23,9 +23,8 @@ Environment variables:
                         RAW_MIC=0 uses /agent/process_audio_output (needs the wake word before every sentence).
   MIC_GAIN=8            multiply the raw mic (the X2's raw capture is very quiet: speech at about 150 RMS).
                         VERBOSE=1 prints "mic level" every 5 s: aim for 1000-4000 while someone talks.
-  REF_MUTE_RMS=300      the raw capture carries 2 speaker-reference channels: louder than this = the robot is
-                        playing, so the mic is muted (the robot must not hear itself). SPEAK_TAIL=1.0 adds a second
-                        of mute after our last chunk, because the robot plays a little behind us.
+  SPEAK_TAIL=2.0        seconds of mute after our last audio chunk (the robot plays behind us; it must not hear itself).
+  REF_MUTE_RMS=999999   off. Lower (e.g. 300) only on a robot whose 2 reference channels carry the speaker alone.
   MIC_STREAM=auto       or an exact stream_id. auto = the first that speaks. The log shows every id heard.
                         AgiBot's docs say 0 built-in and 1 external; the team guide says 1 and 2. Check the log.
   NOISE_GATE=0          turn the noise gate off
@@ -72,8 +71,9 @@ HALF_DUPLEX = os.environ.get("HALF_DUPLEX", "1") == "1" or RAW_MIC
 MIC_STREAM = os.environ.get("MIC_STREAM", "auto").strip().lower() or "auto"
 MIC_STREAM = None if MIC_STREAM == "auto" else int(MIC_STREAM)
 MIC_GAIN = float(os.environ.get("MIC_GAIN", "8"))
-REF_MUTE_RMS = float(os.environ.get("REF_MUTE_RMS", "300"))  # speaker reference louder than this = the robot is playing
-SPEAK_TAIL = float(os.environ.get("SPEAK_TAIL", "1.0"))      # extra seconds of mute after our last audio chunk
+# Off by default: on robot 2 the two "reference" channels also carry the room, so this muted the visitor (25 Nov).
+REF_MUTE_RMS = float(os.environ.get("REF_MUTE_RMS", "999999"))
+SPEAK_TAIL = float(os.environ.get("SPEAK_TAIL", "2.0"))      # seconds of mute after our last chunk: the robot plays late
 KEEP_ALIVE_S = 15  # while walking, silence is normal: tell ElevenLabs we are still here
 VERBOSE = os.environ.get("VERBOSE", "0") == "1"
 
