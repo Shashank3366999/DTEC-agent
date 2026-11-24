@@ -88,7 +88,7 @@ class RouteTest(unittest.TestCase):
         self.assertEqual(out["status"], "changed")
         self.assertIn("Turn around", out["say_operator"])
         self.assertIn("قاعة المؤتمرات", out["say_first_visitor"])
-        self.assertEqual(out["say_in_order"][0], "Operator: stop, please.")  # the robot is moving
+        self.assertEqual(out["say_in_order"][0], "Operator: please pause.")  # the robot is moving
         self.assertIn("Turn around", out["say_in_order"][-1])
         out = self.nav.step_done(out["step"])
         self.assertEqual(out["status"], "arrived")

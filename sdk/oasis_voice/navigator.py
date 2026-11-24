@@ -389,8 +389,8 @@ class Navigator:
                 return {
                     "status": "need_position",
                     "options": [{"last_passed": k, "name": self.node_name(k)} for k in chain[:-1]],
-                    "say_operator": "Operator: stop, please. What is the last place you passed?",
-                    "say_in_order": ["Operator: stop, please. What is the last place you passed?"],
+                    "say_operator": "Operator: please pause. What is the last place you passed?",
+                    "say_in_order": ["Operator: please pause. What is the last place you passed?"],
                     "say": "Say this to the operator, then call start_route again with last_passed.",
                 }
             legs = None
@@ -432,13 +432,13 @@ class Navigator:
         self.route = {"place_id": place_id, "language": lang, "legs": legs, "i": 0}
         out = self._issue("changed" if changed else "started")
         if changed:
-            out["say_operator"] = (f"Operator: stop, please. New destination: the {self.place_name(place, 'en')}. "
+            out["say_operator"] = (f"Operator: change of plan, please pause. New destination: the {self.place_name(place, 'en')}. "
                                    + self._leg_now()["text"])
         out["say_visitor"] = visitor_line("start", lang, place=self.place_name(place, self.directory.lang(lang)))
         out["say_in_order"] = [out["say_visitor"], out["say_operator"]]
         if changed:  # the robot is moving: the stop comes first, the new step last
             out["say_in_order"] = [
-                "Operator: stop, please.", *([changed["say_first_visitor"]] if not same_person else []), out["say_visitor"],
+                "Operator: please pause.", *([changed["say_first_visitor"]] if not same_person else []), out["say_visitor"],
                 f"Operator: New destination: the {self.place_name(place, 'en')}. " + self._leg_now()["text"]]
         out.update(changed)
         return out
@@ -468,7 +468,7 @@ class Navigator:
     def _arrived(self, place, lang):
         out = {
             "status": "arrived", "destination": self.place_name(place, "en"), "visitor_language": lang,
-            "say_operator": "Operator: stop here, please. We have arrived.",
+            "say_operator": "Operator: we have arrived, please stop here.",
             "say_visitor": visitor_line("arrived", lang, place=self.place_name(place, self.directory.lang(lang))),
         }
         out["say_in_order"] = [out["say_operator"], out["say_visitor"]]
@@ -481,7 +481,7 @@ class Navigator:
     def _need_position(self):
         return {
             "status": "need_position", "options": [],
-            "say_operator": "Operator: stop, please. What is right next to the robot?",
+            "say_operator": "Operator: please pause. What is right next to the robot?",
             "say": "Ask the operator or someone nearby, then call start_route again with start_at. Do not guess.",
         }
 
@@ -540,7 +540,7 @@ class Navigator:
             self.heading = None
         self.route = self.pending = None
         return {"status": "cancelled", "position_known": not was_walking,
-                "say_operator": "Operator: stop here, please.",
+                "say_operator": "Operator: please stop here, the trip is over.",
                 "say": "Tell the visitor the trip is stopped." +
                        (" Before the next trip, ask where the robot is and call update_position." if was_walking else "")}
 

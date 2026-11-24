@@ -55,12 +55,12 @@
     "supported_voices": [
       {
         "label": "Operator",
-        "voice_id": "SAz9YHcvj6GT2YYXdXww",
-        "description": "The English voice for lines to the operator who walks the robot.",
+        "voice_id": "JBFqnCBsd6RMkjVDRZzb",
+        "description": "The English voice for lines to the operator who walks the robot: a male voice, so it is clearly not the visitor's guide.",
         "language": "en"
       }
     ],
-    "_voices_note": "supported_voices: 'Operator' = River (ElevenLabs premade, neutral, calm). Operator lines are wrapped in <Operator> tags by the agent so they come out in this voice.",
+    "_voices_note": "supported_voices: 'Operator' = George (ElevenLabs premade, male, British). The visitor's voice is Layan (female). Operator lines are wrapped in <Operator> tags by the agent.",
     "soft_timeout": {
       "en": "One moment.",
       "ar": "لحظة.",
@@ -140,7 +140,9 @@
     "Visitor (while walking): धन्यवाद।\nYou: आपका स्वागत है।",
     "Visitor (while walking): ठीक है, इसके बाद?\nYou: ऑपरेटर यह कदम पूरा कर लें, फिर बताता हूँ।",
     "Visitor: मैं मेन जंक्शन पर हूँ और मुझे बूथ तीन जाना है।\nYou: (find_place बूथ तीन, then start_route with booth_3 and start_at \"main junction\")",
-    "Visitor: وين المسجد؟\nYou (find_place says not_found): ما عندي هالمكان في هالطابق. تبي أنادي لك أحد من المنظمين؟"
+    "Visitor: وين المسجد؟\nYou (find_place says not_found): ما عندي هالمكان في هالطابق. تبي أنادي لك أحد من المنظمين؟",
+    "Visitor: ممكن تساعدني أروح من هنا لهناك؟\nYou (no place was named, so no tool call): أكيد! وين تحب تروح؟ عندنا المطبخ، غرفة الاجتماعات، قاعة المؤتمرات، كبائن المكالمات وطاولات الفرق.",
+    "Operator: Okay, that step is done.\nYou (step_done says arrived): Operator: we have arrived, please stop here. وصلنا: هذا المطبخ. الغداء مستمر هنا حتى الثانية."
   ],
   "floor": {
     "demo": true,
@@ -663,61 +665,71 @@
         "place": "conference_room",
         "when": "08:45-10:45",
         "en": "Pitches to the jury",
-        "ar": "عروض الفرق أمام لجنة التحكيم"
+        "ar": "عروض الفرق أمام لجنة التحكيم",
+        "date": "Wed 25 Nov"
       },
       {
         "place": "conference_room",
         "when": "10:45-11:00",
         "en": "Winners announced",
-        "ar": "إعلان الفائزين"
+        "ar": "إعلان الفائزين",
+        "date": "Wed 25 Nov"
       },
       {
         "place": "meeting_room",
         "when": "07:15-07:30",
         "en": "Pitching workshop",
-        "ar": "ورشة التحضير للعرض"
+        "ar": "ورشة التحضير للعرض",
+        "date": "Wed 25 Nov"
       },
       {
         "place": "meeting_room",
         "when": "15:00-17:00",
         "en": "Mentors at the tables",
-        "ar": "المرشدون على الطاولات"
+        "ar": "المرشدون على الطاولات",
+        "date": "Wed 25 Nov"
       },
       {
         "place": "kitchen",
         "when": "07:30-08:30",
         "en": "Breakfast",
-        "ar": "الفطور"
+        "ar": "الفطور",
+        "date": "Wed 25 Nov"
       },
       {
         "place": "kitchen",
         "when": "13:00-14:00",
         "en": "Lunch",
-        "ar": "الغداء"
+        "ar": "الغداء",
+        "date": "Wed 25 Nov"
       },
       {
         "place": "kitchen",
         "when": "19:00-20:00",
         "en": "Dinner",
-        "ar": "العشاء"
+        "ar": "العشاء",
+        "date": "Tue 24 Nov"
       },
       {
         "place": "kitchen",
         "when": "23:00-23:59",
         "en": "Late-night food",
-        "ar": "وجبة منتصف الليل"
+        "ar": "وجبة منتصف الليل",
+        "date": "Tue 24 Nov"
       },
       {
         "place": "team_tables",
         "when": "06:00-08:30",
         "en": "Teams finishing their demos; code freeze at 08:30",
-        "ar": "الفرق تنهي عروضها، إغلاق التسليم 08:30"
+        "ar": "الفرق تنهي عروضها، إغلاق التسليم 08:30",
+        "date": "Wed 25 Nov"
       },
       {
         "place": "call_booths",
         "when": "00:00-23:59",
         "en": "Quiet; one person per booth",
-        "ar": "هادئة، شخص واحد لكل كابينة"
+        "ar": "هادئة، شخص واحد لكل كابينة",
+        "date": "every day"
       }
     ]
   }

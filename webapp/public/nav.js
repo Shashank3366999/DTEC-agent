@@ -201,8 +201,8 @@
         if (plans && new Set(plans.map((p) => p[0].heading + "|" + p[0].chain[p[0].chain.length - 1])).size > 1) {
           const behind = chain.slice(0, -1);
           return { status: "need_position", options: behind.map((k) => ({ last_passed: k, name: this.nodeName(k) })),
-            say_operator: "Operator: stop, please. What is the last place you passed?",
-            say_in_order: ["Operator: stop, please. What is the last place you passed?"],
+            say_operator: "Operator: please pause. What is the last place you passed?",
+            say_in_order: ["Operator: please pause. What is the last place you passed?"],
             say: "Say this to the operator, then call start_route again with last_passed." };
         }
         if (plans) {
@@ -232,10 +232,10 @@
       }
       this.route = { place_id: placeId, language: lang, legs, i: 0 };
       const out = this.issue(old ? "changed" : "started");
-      if (old) out.say_operator = `Operator: stop, please. New destination: the ${this.placeName(place, "en")}. ` + this.legNow().text;
+      if (old) out.say_operator = `Operator: change of plan, please pause. New destination: the ${this.placeName(place, "en")}. ` + this.legNow().text;
       out.say_visitor = this.visitorLine("start", lang, { place: this.placeName(place, this.directory.lang(lang)) });
       out.say_in_order = old
-        ? ["Operator: stop, please.", ...(samePerson ? [] : [changed.say_first_visitor]), out.say_visitor, `Operator: New destination: the ${this.placeName(place, "en")}. ` + this.legNow().text]
+        ? ["Operator: please pause.", ...(samePerson ? [] : [changed.say_first_visitor]), out.say_visitor, `Operator: New destination: the ${this.placeName(place, "en")}. ` + this.legNow().text]
         : [out.say_visitor, out.say_operator];
       return Object.assign(out, changed);
     }
@@ -255,7 +255,7 @@
     }
     arrived(place, lang) {
       const out = { status: "arrived", destination: this.placeName(place, "en"), visitor_language: lang,
-        say_operator: "Operator: stop here, please. We have arrived.",
+        say_operator: "Operator: we have arrived, please stop here.",
         say_visitor: this.visitorLine("arrived", lang, { place: this.placeName(place, this.directory.lang(lang)) }) };
       out.say_in_order = [out.say_operator, out.say_visitor];
       if (this.pending && this.pending.place_id !== place.id) {
@@ -266,7 +266,7 @@
     }
     needPosition() {
       return { status: "need_position", options: [],
-        say_operator: "Operator: stop, please. What is right next to the robot?",
+        say_operator: "Operator: please pause. What is right next to the robot?",
         say: "Ask the operator or someone nearby, then call start_route again with start_at. Do not guess." };
     }
     unknownSpot() {
@@ -303,7 +303,7 @@
       const was = this.route !== null;
       if (was) this.heading = null;
       this.route = this.pending = null;
-      return { status: "cancelled", position_known: !was, say_operator: "Operator: stop here, please.",
+      return { status: "cancelled", position_known: !was, say_operator: "Operator: please stop here, the trip is over.",
         say: "Tell the visitor the trip is stopped." + (was ? " Before the next trip, ask where the robot is and call update_position." : "") };
     }
     snapshot() {

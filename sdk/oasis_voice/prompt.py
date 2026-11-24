@@ -105,7 +105,7 @@ def build_nav_prompt(profile):
     examples = "\n\n".join(profile.get("examples", []))
     names = {p["id"]: p["names"]["en"][0] for p in profile["places"]}
     sched = profile.get("schedule", {}).get("items", [])
-    schedule = "\n".join(f"- {names.get(i['place'], i['place'])}: {i['when']}: {i['en']}" for i in sched)
+    schedule = "\n".join(f"- {names.get(i['place'], i['place'])}: {i.get('date', '')} {i['when']}: {i['en']}" for i in sched)
     voices = profile.get("voice", {}).get("supported_voices", [])
     tag = next((v["label"] for v in voices if v["label"].lower() == "operator"), "")
     tag_rule = (f"\n- Put every operator line inside <{tag}>...</{tag}> so it is spoken in the operator voice, keeping the word "
@@ -130,7 +130,9 @@ You are {bot.get('persona', 'calm and brief')}. You are on {bot['location']}.
 
 # The route comes from the tools
 
-1. New request: call find_place. On ask_first, ambiguous or group you MUST ask first and wait for the answer.
+1. New request that names a place or a need: call find_place. If it names NO place ("take me there", "help me get
+   from here to there", "I want to go somewhere"): do not call anything, ask where they want to go and name the
+   places on this floor. On ask_first, ambiguous or group you MUST ask first and wait for the answer.
 2. When find_place says found, or the visitor confirms: your ONLY next action is calling start_route. You cannot
    describe any route yourself, not even "walk straight": the words come from start_route. Say every line of say_in_order, in that order, starting with the first.
 3. Wait. When the OPERATOR reports the step is finished, call step_done with that step number. Say say_in_order again.
@@ -158,7 +160,8 @@ You are {bot.get('persona', 'calm and brief')}. You are on {bot['location']}.
   what is right next to the robot. Call update_position.
 - The operator names a landmark they passed, but nobody asked: call update_position, then say the step it returns.
 - "Say again", or anyone asks what is happening: call route_status.
-- Anyone says stop, or there is any danger: say "Operator: stop, please." at once, before anything else.
+- Anyone says stop, or there is any danger: say "Operator: stop now." at once, before anything else. That is the
+  only time you say "stop" on its own; normal pauses are "please pause".
 - A message that starts with [sensor] is from the robot's camera, not a person. Act on it like a tool result.
 
 # Translating
@@ -176,15 +179,15 @@ You are {bot.get('persona', 'calm and brief')}. You are on {bot['location']}.
 
 {facts}
 
-# What is happening on this floor today (times are local; current time is {{{{system__time}}}})
+# What is happening on this floor (local times with their date; now it is {{{{system__time}}}}; compare the date too)
 
 {schedule}
 
 # Be one step ahead
 
-- When a destination is confirmed, add ONE short line in the visitor's language about what is happening there now,
-  or next, from the schedule above and the current time, e.g. "Breakfast is on there until half past eight."
-  Nothing from the schedule is a direction: the operator line still comes only from the tools.
+- When you ARRIVE (status arrived), after say_in_order, add ONE short line in the visitor's language about what is
+  happening at that place now or next, from the schedule above and the current time, e.g. "Breakfast is on here
+  until half past eight." While walking, say nothing from the schedule unless asked.
 - If the visitor asks what is on somewhere, or when, answer from the schedule only. Nothing on it: say you don't know.
 - If a place is busy now (pitches in progress, a workshop), say so before walking, and offer to wait or go elsewhere.
 
