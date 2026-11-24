@@ -1,0 +1,62 @@
+{
+  "_comment": "Example of a second bot made only from data: a reception bot for a small startup office. All places are demo data.",
+  "bot": {
+    "id": "startup_office",
+    "name": "Falcon Labs Front Desk",
+    "role": "a voice receptionist for Falcon Labs, a 12-person startup in Dtec. You welcome guests, find meeting rooms and call the team",
+    "location": "the Falcon Labs entrance on the second floor of Dtec TechnoHub 1",
+    "persona": "friendly, upbeat and quick",
+    "event_today": "Today there is an investor demo at 16:00 in the Oasis room.",
+    "timezone": "Asia/Dubai",
+    "channel_note": "You speak through a small speaker at the office entrance. A tablet next to you shows check-ins."
+  },
+  "languages": { "default": "en", "others": ["ar"] },
+  "greeting": {
+    "en": "Hi, welcome to Falcon Labs! I'm the AI front desk. Who are you here to see?",
+    "ar": "أهلاً بك في فالكون لابز! أنا مكتب الاستقبال الذكي. من جئت لمقابلته؟"
+  },
+  "operator": {
+    "name": { "en": "the office manager", "ar": "مدير المكتب" },
+    "where": { "en": "at the first desk on your left", "ar": "على المكتب الأول إلى يسارك" },
+    "when": "the visitor asks for a person, has a delivery, or you can't help"
+  },
+  "facts": [
+    { "en": "Falcon Labs builds AI tools for logistics. The office is open Sunday to Thursday, 09:00 to 18:00.", "source": "Demo data" },
+    { "en": "Guest Wi-Fi details are on the card at the front desk. Never read out a password.", "source": "Demo data" }
+  ],
+  "actions": { "check_in": true, "send_route": false, "operator": true },
+  "asr_keywords": ["Falcon Labs", "Oasis room", "Majlis room"],
+  "places": [
+    {
+      "id": "oasis_room",
+      "names": { "en": ["Oasis room", "big meeting room", "demo room"], "ar": ["غرفة الواحة", "غرفة الاجتماعات الكبيرة"] },
+      "keywords": { "en": ["meeting", "demo", "investor"], "ar": ["اجتماع", "عرض"] },
+      "where": { "en": "End of the corridor, glass room on the right", "ar": "نهاية الممر، الغرفة الزجاجية على اليمين" },
+      "directions": { "en": ["Walk to the end of the corridor.", "The Oasis room is the glass room on the right."], "ar": ["امشِ حتى نهاية الممر.", "غرفة الواحة هي الغرفة الزجاجية على اليمين."] },
+      "walk_minutes": 1, "check_in": true, "demo": true
+    },
+    {
+      "id": "majlis_room",
+      "names": { "en": ["Majlis room", "small meeting room", "call room"], "ar": ["غرفة المجلس", "غرفة الاجتماعات الصغيرة"] },
+      "keywords": { "en": ["meeting", "call"], "ar": ["اجتماع", "مكالمة"] },
+      "where": { "en": "First door on the left", "ar": "الباب الأول على اليسار" },
+      "directions": { "en": ["It's the first door on your left."], "ar": ["إنها الباب الأول على يسارك."] },
+      "walk_minutes": 1, "demo": true
+    },
+    {
+      "id": "kitchen",
+      "names": { "en": ["kitchen", "pantry"], "ar": ["المطبخ"] },
+      "keywords": { "en": ["coffee", "water", "tea", "snack"], "ar": ["قهوة", "ماء", "شاي"] },
+      "where": { "en": "Behind the open desks", "ar": "خلف المكاتب المفتوحة" },
+      "directions": { "en": ["Walk past the open desks.", "The kitchen is at the back."], "ar": ["امشِ بعد المكاتب المفتوحة.", "المطبخ في الخلف."] },
+      "walk_minutes": 1, "demo": true
+    },
+    {
+      "id": "toilets",
+      "names": { "en": ["toilets", "toilet", "restroom", "bathroom"], "ar": ["دورة المياه", "الحمام"] },
+      "where": { "en": "Outside the office, next to the lifts", "ar": "خارج المكتب بجانب المصاعد" },
+      "directions": { "en": ["Go back out of the office door.", "The toilets are next to the lifts."], "ar": ["اخرج من باب المكتب.", "دورات المياه بجانب المصاعد."] },
+      "walk_minutes": 1, "demo": true
+    }
+  ]
+}

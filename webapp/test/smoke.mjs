@@ -111,6 +111,22 @@ try {
     assert.equal(r.status, 400);
   });
 
+  await check("operator alert works and shows in state", async () => {
+    const r = await post("/api/operator", { reason: "Visitor disputes a fee", language: "en" });
+    assert.equal(r.status, 200);
+    const s = await (await fetch(base + "/api/state")).json();
+    assert.equal(s.operator_calls[0].reason, "Visitor disputes a fee");
+  });
+
+  await check("same-origin browser call works without the secret", async () => {
+    const r = await fetch(base + "/api/operator", {
+      method: "POST",
+      headers: { "content-type": "application/json", "sec-fetch-site": "same-origin" },
+      body: JSON.stringify({ reason: "kiosk test" }),
+    });
+    assert.equal(r.status, 200);
+  });
+
   await check("state lists check-ins and routes, newest first", async () => {
     const s = await (await fetch(base + "/api/state")).json();
     assert.equal(s.checkins.length, 2);

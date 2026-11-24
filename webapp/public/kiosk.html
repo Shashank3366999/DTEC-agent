@@ -7,27 +7,45 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600&family=IBM+Plex+Sans+Arabic:wght@400;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/styles.css">
+  <script src="/oasis.js"></script>
 </head>
 <body>
   <header class="bar">
-    <div class="brand"><span class="dot"></span>DSO Visitor Guide <span class="small">· laptop demo</span></div>
-    <span class="tag">Backup demo · demo data</span>
+    <div class="brand"><span class="dot"></span><span id="bot-name">DSO Visitor Guide</span> <span class="small">· laptop demo</span></div>
+    <span class="tag">Demo · tools run in this browser, like on the robot</span>
   </header>
   <main class="kiosk">
     <section class="panel talk">
       <h2>Talk to the guide</h2>
       <p>Press the call button and speak in Arabic or English.</p>
       <div id="widget-slot"></div>
-      <p id="no-agent" class="warn" hidden>Add your agent ID to the address: <code>/kiosk?agent=YOUR_AGENT_ID</code>. The agent must be public for the widget to work.</p>
+      <p id="status" class="small"></p>
+      <p id="no-agent" class="warn" hidden>No agent found. Run <code>python3 -m oasis_voice build</code> in the sdk folder, or add <code>?agent=YOUR_AGENT_ID</code> to the address.</p>
     </section>
     <iframe class="embed" src="/screen" title="Reception screen"></iframe>
   </main>
   <script>
-  (function () {
-    const agent = new URLSearchParams(location.search).get("agent");
+  (async function () {
+    const status = document.getElementById("status");
+    let profile = null;
+    try {
+      profile = await (await fetch("/profile.json", { cache: "no-store" })).json();
+      document.getElementById("bot-name").textContent = profile.bot.name;
+    } catch (e) {
+      status.textContent = "profile.json not found: directions tools are off.";
+    }
+    const agent = new URLSearchParams(location.search).get("agent") || (profile && profile.agent_id);
     if (!agent) { document.getElementById("no-agent").hidden = false; return; }
+
     const w = document.createElement("elevenlabs-convai");
     w.setAttribute("agent-id", agent);
+    if (profile) {
+      const tools = Oasis.makeClientTools(profile);
+      w.addEventListener("elevenlabs-convai:call", (event) => {
+        event.detail.config.clientTools = tools;
+      });
+      status.textContent = profile.places.length + " places loaded · tools ready";
+    }
     document.getElementById("widget-slot").append(w);
     const s = document.createElement("script");
     s.src = "https://unpkg.com/@elevenlabs/convai-widget-embed";

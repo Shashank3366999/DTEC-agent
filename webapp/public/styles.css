@@ -31,6 +31,16 @@ a { color: var(--accent); }
 .live i { width: 8px; height: 8px; border-radius: 50%; background: #b8b8b8; display: inline-block; }
 .live.on i { background: var(--accent); }
 
+/* operator alert */
+.operator {
+  margin: 20px 28px 0; padding: 16px 20px; border-radius: var(--radius);
+  background: #fff1e0; border: 2px solid #e08a1e; color: var(--ink);
+  display: flex; gap: 14px; align-items: center; font-size: 18px;
+}
+.operator strong { color: #a0560b; }
+.operator span { flex: 1; }
+.operator button { border: 1px solid #e0b06e; background: #fff; border-radius: 8px; padding: 8px 14px; font: inherit; cursor: pointer; }
+
 /* reception screen layout */
 .screen { display: grid; grid-template-columns: 1.1fr 1fr; gap: 24px; padding: 24px 28px; }
 @media (max-width: 900px) { .screen { grid-template-columns: 1fr; } }

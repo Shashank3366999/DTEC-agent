@@ -1,4 +1,4 @@
-# Sources for the knowledge base
+# Sources for the profile data
 
 Checked on 24 Nov 2026. Where sources disagreed, we kept the organisers' team guide.
 
@@ -19,4 +19,4 @@ Checked on 24 Nov 2026. Where sources disagreed, we kept the organisers' team gu
 
 ## Demo data
 
-Every row marked [Demo data] in `knowledge_base.md` is an example made up for the demo. Replace each one with the real directions from the on-site walk, and change the label to [On site 24 Nov].
+Every place with `"demo": true` in `profiles/dtec_navigator.json` uses example directions made up for the demo. Replace them with the real directions from the on-site walk and remove `"demo": true`.

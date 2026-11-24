@@ -1,148 +1,106 @@
 # Walkthrough: from zero to demo
 
-Five parts, in order. Each step says **who** does it and **what you should see**.
+Each step says **who** does it and **what you should see**.
 
 ```
-Part 1  Make the agent (get the agent ID)        ✅ done
-Part 2  Put the web app online                    ⬜ to do
-Part 3  Connect the agent to the web app          ⬜ to do
-Part 4  Put the agent ID where it is needed       ⬜ to do
-Part 5  Show the demo                             ⬜ to do
-Extra   Add the on-site directions                ⬜ when they arrive
+Part 1  The agent exists                           ✅ done (agent_4001m86cac97egtb840g9whcrbz3)
+Part 2  Laptop demo                                ✅ works on any laptop, no Render needed
+Part 3  Put the web app online (for the robot)     ⬜ to do
+Part 4  Run the SDK bridge on the robot            ⬜ at the robot slots
+Part 5  Show the demo                              ⬜ film Wed 06:30, pitch Wed 09:20
+Extra   Add the real on-site directions            ⬜ when they arrive
 ```
 
-Our agent ID: **`agent_4001m86cac97egtb840g9whcrbz3`** (also saved in `agent/agent_id.txt`). It is not secret.
+Our agent ID: **`agent_4001m86cac97egtb840g9whcrbz3`** (saved in `sdk/state/dtec_navigator.json`). It is not secret.
 
 ---
 
-## Part 1: Make the agent (get the agent ID) ✅
+## Part 1: The agent ✅
 
-**Already done.** This is how it was made, in case you need to do it again.
+Made from `sdk/profiles/dtec_navigator.json` with the SDK. To change it after editing the profile:
 
-1. In the project folder, copy `.env.example` to a new file called `.env`, and put the ElevenLabs key after `ELEVENLABS_API_KEY=`. Save.
-   *Never paste the key in a chat or a doc.*
-2. Open a terminal and run:
-   ```bash
-   cd DTEC-agent
-   python3 agent/setup_agent.py
-   ```
-3. **You should see:** `Done. Agent ID: agent_…`
+```bash
+cd DTEC-agent/sdk
+python3 -m oasis_voice build        # needs ELEVENLABS_API_KEY in DTEC-agent/.env (copy .env.example)
+```
 
-**Running it again does not make a new agent.** It updates the same one (the ID is in `agent/agent_id.txt`), so the ID never changes. Run it every time we change the instructions or the facts.
+It always updates the **same** agent, so the ID never changes. Details: [sdk/README.md](sdk/README.md).
 
-**To check it works:** open http://localhost:3000/kiosk?agent=agent_4001m86cac97egtb840g9whcrbz3 (the web app must be running, see Part 2, step 1). Press the call button, allow the microphone, and talk.
+**Test it by typing** (no mic needed, tools run locally):
+```bash
+pip3 install websocket-client
+python3 -m oasis_voice chat --say "Where is the bank?" --say "Where can I pray?"
+```
 
 ---
 
-## Part 2: Put the web app online
+## Part 2: Laptop demo ✅
 
-The web app is the screen with check-ins and the QR code. It has to be online so the agent can reach it.
-
-### Step 1: Run it on your laptop (for testing)
 ```bash
 cd DTEC-agent/webapp
 node server.js
 ```
-**You should see:** `Hercules reception backend on http://localhost:3000`
-Open http://localhost:3000/screen and http://localhost:3000/test side by side and press the buttons on the test page.
+Open **http://localhost:3000/kiosk**, press the call button, allow the microphone and talk. The reception screen beside it updates live: check-ins, route QR codes and operator alerts all work **by voice**, because the tools run in the browser.
 
-### Step 2: Put it online on Render (free)
-1. The code is already on GitHub in the private `DTEC-agent` repo. (`.env` is never uploaded: it is in `.gitignore`.)
-2. Go to render.com and sign up (GitHub login is easiest).
-3. Click **New → Web Service** → pick the repo.
-4. Fill in:
-   - **Root Directory:** `webapp`
-   - **Build Command:** leave empty
-   - **Start Command:** `node server.js`
-   - **Instance type:** Free
-5. Under **Environment**, add:
-   - `TOOL_SECRET` = make up a long random word, for example `hercules-oasis-4821-lobby`
-6. Click **Create Web Service** and wait until it says **Live**.
-7. Copy the URL at the top (something like `https://hercules-abcd.onrender.com`).
-8. Add one more environment variable: `PUBLIC_URL` = that URL. Render restarts by itself.
-9. **Check:** open `<your URL>/health`. **You should see:** `{"ok":true}`. Then open `<your URL>/screen`.
-
-> Free Render sleeps when nobody uses it and takes about a minute to wake. Open `/screen` a few minutes before every robot slot and before the pitch.
-
-**No time for Render?** Run it on a laptop and share it with a temporary link: `npx localtunnel --port 3000`. The link changes each time, and the laptop must stay on.
+Other pages: `/screen` (reception screen), `/test` (press buttons to fake tool calls, and **Reset all data** before filming).
 
 ---
 
-## Part 3: Connect the agent to the web app
+## Part 3: Put the web app online (for the robot)
 
-This makes "check in" and "send route to phone" work.
+The robot needs a reception screen it can reach over the internet.
 
-1. Open `.env` and fill in:
-   ```
-   WEBAPP_URL=https://hercules-abcd.onrender.com
-   TOOL_SECRET=hercules-oasis-4821-lobby
-   ```
-   (Same URL as Part 2, no `/` at the end, same secret word as on Render.)
-2. Run:
-   ```bash
-   cd DTEC-agent
-   python3 agent/setup_agent.py
-   ```
-3. **You should see:** `Creating webhook tools…` then `Updating agent agent_4001m86…` then `Done.`
-4. **Test:** open `<your URL>/kiosk?agent=agent_4001m86cac97egtb840g9whcrbz3`, press call, and say:
-   *"I have a meeting at Oraseya Capital at three. My name is Sara. Please tell them I'm here."*
-   **You should see:** a new arrival appear on the right side within a few seconds.
-   Then say: *"Can you send me the route?"* → a QR code appears. Scan it with your phone.
+1. render.com → sign up with GitHub → **New → Web Service** → pick `DTEC-agent`.
+2. **Root Directory:** `webapp` · **Build Command:** empty · **Start Command:** `node server.js` · **Instance:** Free.
+3. **Environment:** `TOOL_SECRET` = a long made-up word.
+4. Create, wait for **Live**, copy the URL, then add `PUBLIC_URL` = that URL.
+5. Check `<URL>/health` says `{"ok":true}` and `<URL>/kiosk` works.
 
-If nothing appears: check the URL and secret in `.env` match Render exactly, and that `<your URL>/health` works.
+> Free Render sleeps when unused (about a minute to wake). Open `/screen` a few minutes before every robot slot.
+
+No time for Render? Run the web app on a laptop on the **same network as the robot** and use `http://<laptop IP>:3000` as `WEBAPP_URL`.
 
 ---
 
-## Part 4: Put the agent ID where it is needed
+## Part 4: Run the SDK bridge on the robot (on-site teammate)
 
-The ID goes in three places.
+Full checklist: [robot/ROBOT_CHECKLIST.md](robot/ROBOT_CHECKLIST.md). Short version, on PC2 inside the container:
 
-| Where | Who | How |
-|---|---|---|
-| **The robot** | On-site teammate | In the robot terminal: `export ELEVENLABS_AGENT_ID=agent_4001m86cac97egtb840g9whcrbz3`, then `python3 elevenlabs_robot_bridge.py` (full steps in `robot/ROBOT_CHECKLIST.md`) |
-| **The laptop demo** | Anyone | Open `<your URL>/kiosk?agent=agent_4001m86cac97egtb840g9whcrbz3` |
-| **The ElevenLabs website** | Account owner | Agents → *DSO Visitor Guide (Team Hercules)* → **Test AI agent** |
+```bash
+pip3 install websocket-client numpy
+source /opt/ros/humble/setup.bash && source <aimdk path>/install/setup.bash
+cd /home/agi/sdk                       # the repo's sdk folder, copied to the robot
+export WEBAPP_URL=<the Render URL>
+export TOOL_SECRET=<the same secret word>
+python3 -m oasis_voice bridge
+```
 
-**Message to send the on-site teammate:**
-> Agent ID: `agent_4001m86cac97egtb840g9whcrbz3`
-> Reception screen: `<your URL>/screen` (open this on a laptop next to the robot)
-> At the robot: `export ELEVENLABS_AGENT_ID=agent_4001m86cac97egtb840g9whcrbz3` then `python3 elevenlabs_robot_bridge.py`. Say the wake word, then talk. If it interrupts itself, run it with `HALF_DUPLEX=1` in front.
+Say the wake word, then talk. The terminal shows every `visitor:`, `tool ...`, `robot:` line and the reply latency. Fixes for common problems are in the checklist.
 
 ---
 
 ## Part 5: Show the demo
 
-### A. The robot demo (the main one, filmed in the last robot slot)
-1. **Before:** open `<your URL>/test` and press **Reset all data**, so the screen starts empty.
-2. Put a laptop with `<your URL>/screen` next to the robot. The camera must see **both** the robot and the screen.
-3. The on-site teammate starts the bridge on the robot (Part 4).
-4. One person plays the visitor and follows `pitch/demo_script.md`:
-   - Says hello in Arabic → the robot says it's an AI guide
-   - "Meeting at Oraseya Capital at three, I want to pray first" → short directions, offers check-in
-   - Says yes + first name → **the arrival appears on the screen**
-   - Switches to English, asks for the route → **the QR code appears**, scan it with a phone on camera
-   - Asks something it can't know → "I don't know, please ask reception"
-5. Film **one unedited take, max 2 minutes**. Practise once before filming.
+### A. Robot demo (filmed in the last robot slot, Wed 06:30)
+1. Open `<URL>/test` → **Reset all data**.
+2. Put a laptop with `<URL>/screen` next to the robot. The camera sees **both**.
+3. Follow [pitch/demo_script.md](pitch/demo_script.md): Arabic greeting → meeting at Oraseya Capital + wants to pray → check-in appears → "where's the bank / mosque?" clarifying question → switch to English → QR route, scan it → unknown question → "I don't know, here's reception" → ask for a person → operator alert appears.
+4. One unedited take, max 2 minutes. Practise once first.
 
-### B. The laptop demo (the backup, record this tonight)
-1. Open `<your URL>/kiosk?agent=agent_4001m86cac97egtb840g9whcrbz3` on a laptop.
-2. Start a screen recording (with sound).
-3. Press call and run the same demo script. The screen on the right updates live.
-4. Keep this video in case the robot fails.
+### B. Backup laptop video (record before the slot)
+Screen-record `/kiosk` (with sound) running the same script.
 
-### C. In the pitch (7 minutes)
-- **3 min talk:** `pitch/slides_and_pitch.md` has the 3 slides and what to say.
-- **2 min demo:** play the robot video, or do the laptop demo live.
-- **2 min questions:** likely questions and answers are in `pitch/slides_and_pitch.md`.
+### C. Pitch (7 minutes)
+3 min talk + 2 min demo (robot video or live `/kiosk`) + 2 min questions: [pitch/slides_and_pitch.md](pitch/slides_and_pitch.md).
 
 ---
 
-## Extra: Add the on-site directions
+## Extra: Add the real on-site directions
 
-When the on-site teammate sends the walking directions:
-1. Open `agent/knowledge_base.md`.
-2. Replace each `NOT COLLECTED YET` with the real directions, and add `[On site 24 Nov]` at the end.
-3. Run `python3 agent/setup_agent.py` again. The agent knows the new directions straight away, on the robot too.
+1. Open `sdk/profiles/dtec_navigator.json` and find the place (e.g. `"id": "toilets"`).
+2. Replace the `directions` steps (English and Arabic) with what was walked, update `walk_minutes`, and delete `"demo": true`.
+3. Check: `cd sdk && python3 -m oasis_voice validate && python3 -m oasis_voice ask "toilets"`
+4. `python3 -m oasis_voice build`, then `git push`, and **pull the repo on the robot** (directions are looked up on the robot).
 
 ---
 
@@ -150,10 +108,9 @@ When the on-site teammate sends the walking directions:
 
 | Problem | Fix |
 |---|---|
-| The agent answers but check-in does nothing | Part 3 not done, or `WEBAPP_URL` / `TOOL_SECRET` wrong. Check `<your URL>/health` |
-| The laptop demo has no call button | The agent ID in the link is wrong, or the page needs a refresh |
-| The robot is silent | Ask the team to check the agent's output audio is PCM 16000 (it is, unless someone changed it) |
-| The robot interrupts itself | Run the bridge with `HALF_DUPLEX=1` |
-| The Arabic voice sounds bad | Pick a better voice in ElevenLabs (Voice tab), or ask the ElevenLabs mentors |
-| An answer is wrong | Change `agent/system_prompt.md` or `agent/knowledge_base.md`, then run `python3 agent/setup_agent.py` |
-| The screen is slow to load | Render was asleep. Wait a minute and refresh |
+| The agent says it can't look places up | The tools aren't running: use `/kiosk` (not the ElevenLabs test page), or the SDK bridge on the robot (not the original bridge) |
+| Check-in or route says the screen is offline | `WEBAPP_URL` / `TOOL_SECRET` wrong or Render asleep. Open `<URL>/health` |
+| The robot interrupts itself | `HALF_DUPLEX=1 python3 -m oasis_voice bridge` |
+| It picks up background chatter | `NOISE_MIN_RMS=600 python3 -m oasis_voice bridge` |
+| An answer is wrong | Fix the place in `sdk/profiles/dtec_navigator.json`, then `build` (and pull on the robot) |
+| The Arabic voice sounds bad | Add `"voice": {"voice_id": "<id>"}` to the profile with a better voice, then `build` |

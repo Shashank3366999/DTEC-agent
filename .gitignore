@@ -4,3 +4,4 @@ webapp/data.json
 *.env
 __pycache__/
 .DS_Store
+sdk/.venv/

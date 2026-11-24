@@ -2,41 +2,44 @@
 
 Voice of the Oasis Hackathon, Challenge 01 (Humanoid Robot A).
 
-A talking guide for the lobby robot at Dtec, Dubai Silicon Oasis. Visitors speak Arabic or English; the robot gives short directions, checks them in with their host, and sends the route to their phone by QR code.
+A talking guide for the lobby robot at Dtec, Dubai Silicon Oasis. Visitors speak Arabic or English; the robot gives exact directions from our data, asks when a request is unclear, checks visitors in with their host, sends the route to their phone by QR code, and calls a human when needed.
 
 ```
-Visitor ⇄ Robot (mic + speaker) ⇄ bridge ⇄ ElevenLabs agent ──tools──▶ web app ──▶ reception screen + phone page
+Visitor ⇄ Robot mic/speaker ⇄ SDK bridge (noise gate, tools) ⇄ ElevenLabs agent
+                                     │
+                                     └──▶ web app: reception screen (check-ins, QR, operator alerts) + phone page
 ```
 
-## What's in this folder
+Agent ID: **`agent_4001m86cac97egtb840g9whcrbz3`** (public, English + Arabic, PCM 16000 for the robot).
 
-| Folder | What it is | Status |
-|---|---|---|
-| `agent/` | Agent instructions, first message, knowledge base, setup steps, test list | Ready to paste into ElevenLabs |
-| `webapp/` | Mock reception system: check-in + route tools, live reception screen, phone route page, laptop demo page | Built and tested on a laptop (smoke test passes) |
-| `robot/` | The organisers' bridge code (unchanged) and a checklist for the person at the robot | Ready |
-| `onsite/` | What to collect inside Dtec, and a message to send the on-site teammate | Ready |
-| `pitch/` | Demo script, 100-word description, 3 slides, pitch talk, likely questions | Draft ready |
+## What's in this repo
 
-**Start here: [WALKTHROUGH.md](WALKTHROUGH.md)** has every step from zero to demo, in order.
+| Folder | What it is |
+|---|---|
+| [`sdk/`](sdk/README.md) | **The Oasis Voice SDK.** Bot data (`profiles/`), deterministic directions, the 4 tools, agent builder, robot bridge, text chat tester, 22 tests |
+| [`webapp/`](webapp/README.md) | Reception screen, phone route page, laptop demo (`/kiosk`), test panel (`/test`) |
+| [`robot/`](robot/ROBOT_CHECKLIST.md) | Checklist for the person at the robot, and the organisers' original bridge as a fallback |
+| [`onsite/`](onsite/COLLECT_DIRECTIONS.md) | What to collect inside Dtec, and a message for the on-site teammate |
+| [`pitch/`](pitch/) | Demo script, 100-word description, 3 slides, pitch talk, likely questions |
+| [`WALKTHROUGH.md`](WALKTHROUGH.md) | Every step from zero to demo, in order |
 
-Agent ID: `agent_4001m86cac97egtb840g9whcrbz3` (created, English + Arabic, PCM 16000; the tools get connected once the web app is online).
+## Quick start
 
-## What still needs a person
+```bash
+# Laptop demo (works fully offline from Render: tools run in the browser)
+cd webapp && node server.js
+# open http://localhost:3000/kiosk   and press the call button
 
-1. **Claim ElevenLabs credits** (Discord → coupon-codes → Start Redemption), then follow `agent/ELEVENLABS_SETUP.md`.
-2. **Put the web app online** (`webapp/README.md`, Render recommended) and set a `TOOL_SECRET`.
-3. **Add the two webhook tools** to the agent with the web app URL and the secret.
-4. **Send the agent ID and the `/screen` link** to the on-site teammate, plus `onsite/MESSAGE_TO_ONSITE.md`.
-5. **Run `agent/test_conversations.md`** in the ElevenLabs test window.
-6. **When directions arrive from the building,** fill the "NOT COLLECTED YET" rows in `agent/knowledge_base.md` and upload it again.
-7. **Ask an Arabic speaker** to check the Arabic first message and the test phrases.
-8. **Before filming,** reset the screen (`POST /api/reset`).
-9. **Make the 3 slides** from `pitch/slides_and_pitch.md`, and add a photo of the Dtec lobby.
+# Test the agent by typing (tools run locally)
+cd sdk && pip3 install websocket-client && python3 -m oasis_voice chat
+
+# After changing sdk/profiles/dtec_navigator.json
+cd sdk && python3 -m oasis_voice build      # needs ELEVENLABS_API_KEY in .env
+```
 
 ## Rules we follow
 
 - The agent is built on ElevenLabs Agents. We never move the robot.
 - Robot code runs only in the container on PC2. Don't touch the robot's system.
-- Facts come from the challenge brief or from our own walk of the building. Anything made up is marked "demo data".
+- Facts come from the challenge brief, public sources (`sdk/SOURCES.md`) or our own walk of the building. Anything made up is marked `"demo": true`.
 - The ElevenLabs API key never goes in this repo, a doc or a chat.

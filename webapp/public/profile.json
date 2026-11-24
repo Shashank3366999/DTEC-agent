@@ -1,0 +1,949 @@
+{
+ "bot": {
+  "id": "dtec_navigator",
+  "name": "DSO Visitor Guide",
+  "role": "a voice guide that helps visitors, new hires and summit guests find their way around Dtec and Dubai Silicon Oasis",
+  "location": "the ground-floor lobby of Dtec TechnoHub 1, Dubai Silicon Oasis, a few steps inside the main glass doors",
+  "persona": "calm, warm and efficient, like a good hotel concierge",
+  "event_today": "Doers Summit Dubai 2026 is on this week at Dubai Silicon Oasis.",
+  "timezone": "Asia/Dubai",
+  "channel_note": "You speak through a humanoid robot's speaker. A screen next to you shows check-ins and QR codes."
+ },
+ "languages": {
+  "default": "en",
+  "others": [
+   "ar"
+  ]
+ },
+ "greeting": {
+  "en": "Hello, I'm the DSO Visitor Guide, an AI assistant. Where would you like to go today? You can speak English or Arabic.",
+  "ar": "مرحباً، أنا دليل الزوار في واحة دبي للسيليكون، مساعد يعمل بالذكاء الاصطناعي. إلى أين تريد أن تذهب اليوم؟ يمكنك التحدث بالعربية أو الإنجليزية."
+ },
+ "operator": {
+  "name": {
+   "en": "the reception desk",
+   "ar": "مكتب الاستقبال"
+  },
+  "where": {
+   "en": "a few steps to my right, facing the entrance",
+   "ar": "على بُعد خطوات إلى يميني، مقابل المدخل"
+  },
+  "phone": "600 59 55 57",
+  "phone_hours": "Monday to Friday, 08:00 to 15:00",
+  "when": "the visitor asks for a person, is upset, disputes something, needs something you can't do, or you don't know the answer"
+ },
+ "facts": [
+  {
+   "en": "Dtec (Dubai Technology Entrepreneur Campus) has two campuses: TechnoHub 1, and building A5 in Dubai Digital Park.",
+   "source": "DSO"
+  },
+  {
+   "en": "Dtec's main campus is in TechnoHub 1 and 2, Dubai Silicon Oasis. Website: dtec dot ae.",
+   "source": "Public"
+  },
+  {
+   "en": "Dtec office hours are 07:30 to 15:00. Members have 24/7 access.",
+   "source": "Dtec"
+  },
+  {
+   "en": "The Doers Summit is a tech and startup summit hosted by Dubai Silicon Oasis, with more than 100 speakers from companies such as Meta, Intel, Nvidia, IBM, Salesforce, Spotify and Bosch. The full agenda is on doerssummit dot com; for session times and rooms, send visitors there or to summit staff.",
+   "source": "Public"
+  },
+  {
+   "en": "The Voice of the Oasis hackathon winners present on the Doers Summit main stage on Wednesday at 13:00.",
+   "source": "Organisers"
+  },
+  {
+   "en": "Bus routes 50, 320, 365, 366 and X25 serve Dubai Silicon Oasis.",
+   "source": "Research"
+  },
+  {
+   "en": "In an emergency, call 999.",
+   "source": "UAE"
+  }
+ ],
+ "actions": {
+  "check_in": true,
+  "send_route": true,
+  "operator": true
+ },
+ "asr_keywords": [
+  "Dtec",
+  "TechnoHub",
+  "Techno Point",
+  "Dubai Silicon Oasis",
+  "DSO",
+  "Oraseya Capital",
+  "Silicon Central",
+  "Emirates NBD",
+  "Burjeel",
+  "Doers Summit",
+  "Union Coop",
+  "Souq Extra",
+  "Al Waha"
+ ],
+ "places": [
+  {
+   "id": "reception_desk",
+   "names": {
+    "en": [
+     "reception desk",
+     "reception",
+     "front desk",
+     "information desk",
+     "help desk"
+    ],
+    "ar": [
+     "مكتب الاستقبال",
+     "الاستقبال"
+    ]
+   },
+   "keywords": {
+    "en": [
+     "help",
+     "information",
+     "register",
+     "registration",
+     "access card",
+     "badge",
+     "visitor pass"
+    ],
+    "ar": [
+     "مساعدة",
+     "تسجيل",
+     "بطاقة دخول"
+    ]
+   },
+   "where": {
+    "en": "Ground floor, next to the robot",
+    "ar": "الطابق الأرضي، بجانب الروبوت"
+   },
+   "directions": {
+    "en": [
+     "The reception desk is a few steps to my right, facing the entrance."
+    ],
+    "ar": [
+     "مكتب الاستقبال على بُعد خطوات إلى يميني، مقابل المدخل."
+    ]
+   },
+   "walk_minutes": 1,
+   "demo": true
+  },
+  {
+   "id": "main_entrance",
+   "names": {
+    "en": [
+     "main entrance",
+     "entrance",
+     "exit",
+     "way out",
+     "main door"
+    ],
+    "ar": [
+     "المدخل الرئيسي",
+     "المدخل",
+     "المخرج",
+     "الباب الرئيسي"
+    ]
+   },
+   "where": {
+    "en": "Right behind the robot",
+    "ar": "خلف الروبوت مباشرة"
+   },
+   "directions": {
+    "en": [
+     "The main glass doors are right behind me."
+    ],
+    "ar": [
+     "الأبواب الزجاجية الرئيسية خلفي مباشرة."
+    ]
+   },
+   "walk_minutes": 1,
+   "demo": true
+  },
+  {
+   "id": "lifts",
+   "names": {
+    "en": [
+     "lifts",
+     "lift",
+     "elevators",
+     "elevator"
+    ],
+    "ar": [
+     "المصاعد",
+     "المصعد",
+     "الأسانسير"
+    ]
+   },
+   "where": {
+    "en": "Ground floor, past the reception desk",
+    "ar": "الطابق الأرضي، بعد مكتب الاستقبال"
+   },
+   "directions": {
+    "en": [
+     "Walk straight ahead past the reception desk.",
+     "The lifts are on your left."
+    ],
+    "ar": [
+     "امشِ إلى الأمام مباشرة بعد مكتب الاستقبال.",
+     "المصاعد على يسارك."
+    ]
+   },
+   "walk_minutes": 1,
+   "demo": true
+  },
+  {
+   "id": "stairs",
+   "names": {
+    "en": [
+     "stairs",
+     "staircase",
+     "stairway"
+    ],
+    "ar": [
+     "الدرج",
+     "السلالم"
+    ]
+   },
+   "where": {
+    "en": "Next to the lifts",
+    "ar": "بجانب المصاعد"
+   },
+   "directions": {
+    "en": [
+     "Walk straight ahead past the reception desk.",
+     "The stairs are next to the lifts, on the right."
+    ],
+    "ar": [
+     "امشِ إلى الأمام مباشرة بعد مكتب الاستقبال.",
+     "الدرج بجانب المصاعد، على اليمين."
+    ]
+   },
+   "walk_minutes": 1,
+   "demo": true
+  },
+  {
+   "id": "oraseya_capital",
+   "names": {
+    "en": [
+     "Oraseya Capital",
+     "Oraseya"
+    ],
+    "ar": [
+     "أوراسيا كابيتال",
+     "أوراسيا"
+    ]
+   },
+   "keywords": {
+    "en": [
+     "first floor"
+    ],
+    "ar": [
+     "الطابق الأول"
+    ]
+   },
+   "where": {
+    "en": "First floor of Dtec TechnoHub 1",
+    "ar": "الطابق الأول في مبنى دي تك تكنو هب 1"
+   },
+   "directions": {
+    "en": [
+     "Walk straight ahead past the reception desk to the lifts on your left.",
+     "Take the lift to the first floor.",
+     "Come out of the lift, turn right and follow the signs to Oraseya Capital."
+    ],
+    "ar": [
+     "امشِ إلى الأمام بعد مكتب الاستقبال حتى المصاعد على يسارك.",
+     "اصعد بالمصعد إلى الطابق الأول.",
+     "عند الخروج من المصعد، انعطف يميناً واتبع اللافتات إلى أوراسيا كابيتال."
+    ]
+   },
+   "walk_minutes": 2,
+   "tip": {
+    "en": "I can tell Oraseya Capital you have arrived.",
+    "ar": "يمكنني إبلاغ أوراسيا كابيتال بوصولك."
+   },
+   "check_in": true,
+   "demo": true
+  },
+  {
+   "id": "toilets",
+   "names": {
+    "en": [
+     "toilets",
+     "toilet",
+     "restroom",
+     "washroom",
+     "bathroom",
+     "wc"
+    ],
+    "ar": [
+     "دورة المياه",
+     "الحمام",
+     "الحمامات",
+     "تواليت"
+    ]
+   },
+   "where": {
+    "en": "Ground floor, end of the corridor past the lifts",
+    "ar": "الطابق الأرضي، نهاية الممر بعد المصاعد"
+   },
+   "directions": {
+    "en": [
+     "Walk straight ahead past the lifts to the end of the corridor.",
+     "The toilets are on the right."
+    ],
+    "ar": [
+     "امشِ إلى الأمام بعد المصاعد حتى نهاية الممر.",
+     "دورات المياه على اليمين."
+    ]
+   },
+   "walk_minutes": 2,
+   "demo": true
+  },
+  {
+   "id": "prayer_room",
+   "names": {
+    "en": [
+     "prayer room",
+     "musalla",
+     "musallah"
+    ],
+    "ar": [
+     "المصلى",
+     "غرفة الصلاة"
+    ]
+   },
+   "keywords": {
+    "en": [
+     "pray",
+     "prayer",
+     "namaz",
+     "salah"
+    ],
+    "ar": [
+     "صلاة",
+     "أصلي",
+     "اصلي",
+     "الصلاة"
+    ]
+   },
+   "where": {
+    "en": "Ground floor, next to the toilets past the lifts",
+    "ar": "الطابق الأرضي، بجانب دورات المياه بعد المصاعد"
+   },
+   "directions": {
+    "en": [
+     "Walk straight ahead past the lifts to the end of the corridor.",
+     "The prayer room is next to the toilets."
+    ],
+    "ar": [
+     "امشِ إلى الأمام بعد المصاعد حتى نهاية الممر.",
+     "المصلى بجانب دورات المياه."
+    ]
+   },
+   "walk_minutes": 2,
+   "tip": {
+    "en": "There are separate rooms for men and women.",
+    "ar": "هناك مصلى للرجال وآخر للنساء."
+   },
+   "demo": true
+  },
+  {
+   "id": "cafe_dtec",
+   "names": {
+    "en": [
+     "Dtec cafe",
+     "cafe",
+     "coffee shop",
+     "cafeteria"
+    ],
+    "ar": [
+     "المقهى",
+     "الكافيه",
+     "الكافتيريا"
+    ]
+   },
+   "keywords": {
+    "en": [
+     "coffee",
+     "tea",
+     "snack",
+     "drink"
+    ],
+    "ar": [
+     "قهوة",
+     "شاي",
+     "مشروب"
+    ]
+   },
+   "where": {
+    "en": "Ground floor, left of the main entrance",
+    "ar": "الطابق الأرضي، يسار المدخل الرئيسي"
+   },
+   "directions": {
+    "en": [
+     "The café is on the ground floor, to the left of the main entrance."
+    ],
+    "ar": [
+     "المقهى في الطابق الأرضي، على يسار المدخل الرئيسي."
+    ]
+   },
+   "walk_minutes": 1,
+   "demo": true
+  },
+  {
+   "id": "doers_summit",
+   "names": {
+    "en": [
+     "Doers Summit",
+     "summit",
+     "main stage",
+     "conference"
+    ],
+    "ar": [
+     "قمة دورز",
+     "القمة",
+     "المسرح الرئيسي",
+     "المؤتمر"
+    ]
+   },
+   "keywords": {
+    "en": [
+     "talk",
+     "session",
+     "agenda",
+     "speaker"
+    ],
+    "ar": [
+     "جلسة",
+     "محاضرة",
+     "برنامج"
+    ]
+   },
+   "where": {
+    "en": "Outside the main entrance, follow the summit signs",
+    "ar": "خارج المدخل الرئيسي، اتبع لافتات القمة"
+   },
+   "directions": {
+    "en": [
+     "Go out of the main entrance and follow the Doers Summit signs.",
+     "Summit staff at the entrance can point the way."
+    ],
+    "ar": [
+     "اخرج من المدخل الرئيسي واتبع لافتات قمة دورز.",
+     "فريق القمة عند المدخل سيرشدك."
+    ]
+   },
+   "tip": {
+    "en": "The full agenda is on doerssummit dot com.",
+    "ar": "البرنامج الكامل على موقع doerssummit.com."
+   },
+   "demo": true
+  },
+  {
+   "id": "taxi",
+   "names": {
+    "en": [
+     "taxi",
+     "taxi stand",
+     "cab",
+     "pick-up",
+     "uber",
+     "careem"
+    ],
+    "ar": [
+     "تاكسي",
+     "سيارة أجرة",
+     "أوبر",
+     "كريم"
+    ]
+   },
+   "where": {
+    "en": "Just outside the main entrance, on the right",
+    "ar": "خارج المدخل الرئيسي مباشرة، على اليمين"
+   },
+   "directions": {
+    "en": [
+     "Go out of the main entrance.",
+     "The taxi pick-up is just outside, on the right."
+    ],
+    "ar": [
+     "اخرج من المدخل الرئيسي.",
+     "موقف سيارات الأجرة خارج المدخل مباشرة على اليمين."
+    ]
+   },
+   "walk_minutes": 1,
+   "demo": true
+  },
+  {
+   "id": "parking",
+   "names": {
+    "en": [
+     "parking",
+     "car park",
+     "visitor parking"
+    ],
+    "ar": [
+     "موقف السيارات",
+     "مواقف السيارات",
+     "الباركنج"
+    ]
+   },
+   "keywords": {
+    "en": [
+     "my car",
+     "car"
+    ],
+    "ar": [
+     "سيارتي"
+    ]
+   },
+   "where": {
+    "en": "In front of the building",
+    "ar": "أمام المبنى"
+   },
+   "directions": {
+    "en": [
+     "Go out of the main entrance.",
+     "Visitor parking is right in front of the building."
+    ],
+    "ar": [
+     "اخرج من المدخل الرئيسي.",
+     "مواقف الزوار أمام المبنى مباشرة."
+    ]
+   },
+   "walk_minutes": 2,
+   "demo": true
+  },
+  {
+   "id": "silicon_central_mall",
+   "names": {
+    "en": [
+     "Silicon Central Mall",
+     "Silicon Central",
+     "the mall"
+    ],
+    "ar": [
+     "سيليكون سنترال مول",
+     "سيليكون سنترال",
+     "المول"
+    ]
+   },
+   "keywords": {
+    "en": [
+     "mall",
+     "shopping",
+     "shops",
+     "cinema",
+     "lulu"
+    ],
+    "ar": [
+     "تسوق",
+     "سينما",
+     "لولو"
+    ]
+   },
+   "where": {
+    "en": "Silicon Central Mall, Dubai Silicon Oasis",
+    "ar": "سيليكون سنترال مول، واحة دبي للسيليكون"
+   },
+   "directions": {
+    "en": [
+     "It's a short taxi ride from here.",
+     "The taxi pick-up is just outside the main entrance, on the right."
+    ],
+    "ar": [
+     "المول على بُعد مسافة قصيرة بسيارة الأجرة.",
+     "موقف سيارات الأجرة خارج المدخل الرئيسي على اليمين."
+    ]
+   },
+   "hours": "08:00-24:00",
+   "tip": {
+    "en": "Lulu Hypermarket and a cinema are inside, with underground parking.",
+    "ar": "يضم هايبرماركت لولو وسينما، مع مواقف تحت الأرض."
+   },
+   "outside": true,
+   "maps_query": "Silicon Central Mall, Dubai Silicon Oasis"
+  },
+  {
+   "id": "friends_avenue_cafe",
+   "names": {
+    "en": [
+     "Friends Avenue Cafe",
+     "Friends Avenue"
+    ],
+    "ar": [
+     "فريندز أفينيو كافيه",
+     "فريندز أفينيو"
+    ]
+   },
+   "keywords": {
+    "en": [
+     "coffee",
+     "cafe"
+    ],
+    "ar": [
+     "قهوة",
+     "مقهى"
+    ]
+   },
+   "where": {
+    "en": "Ground floor of Silicon Central Mall",
+    "ar": "الطابق الأرضي في سيليكون سنترال مول"
+   },
+   "directions": {
+    "en": [
+     "Take a taxi to Silicon Central Mall.",
+     "Friends Avenue Cafe is on the ground floor."
+    ],
+    "ar": [
+     "خذ سيارة أجرة إلى سيليكون سنترال مول.",
+     "المقهى في الطابق الأرضي."
+    ]
+   },
+   "hours": "08:00-24:00",
+   "outside": true,
+   "maps_query": "Silicon Central Mall, Dubai Silicon Oasis"
+  },
+  {
+   "id": "emirates_nbd",
+   "names": {
+    "en": [
+     "Emirates NBD",
+     "ENBD"
+    ],
+    "ar": [
+     "الإمارات دبي الوطني",
+     "بنك الإمارات دبي الوطني"
+    ]
+   },
+   "keywords": {
+    "en": [
+     "bank",
+     "atm",
+     "cash",
+     "money"
+    ],
+    "ar": [
+     "بنك",
+     "البنك",
+     "صراف",
+     "صراف آلي"
+    ]
+   },
+   "where": {
+    "en": "First floor of Silicon Central Mall",
+    "ar": "الطابق الأول في سيليكون سنترال مول"
+   },
+   "directions": {
+    "en": [
+     "Take a taxi to Silicon Central Mall.",
+     "Emirates NBD is on the first floor."
+    ],
+    "ar": [
+     "خذ سيارة أجرة إلى سيليكون سنترال مول.",
+     "بنك الإمارات دبي الوطني في الطابق الأول."
+    ]
+   },
+   "tip": {
+    "en": "The mall is open 08:00 to midnight; branch hours may differ.",
+    "ar": "المول مفتوح من الثامنة صباحاً حتى منتصف الليل، وقد تختلف ساعات الفرع."
+   },
+   "outside": true,
+   "maps_query": "Emirates NBD Silicon Central Mall Dubai Silicon Oasis"
+  },
+  {
+   "id": "dso_masjid",
+   "names": {
+    "en": [
+     "DSO Masjid",
+     "DSO Mosque",
+     "Techno Point mosque"
+    ],
+    "ar": [
+     "مسجد واحة دبي للسيليكون",
+     "مسجد تكنو بوينت"
+    ]
+   },
+   "keywords": {
+    "en": [
+     "mosque",
+     "masjid",
+     "pray",
+     "prayer",
+     "friday prayer"
+    ],
+    "ar": [
+     "مسجد",
+     "جامع",
+     "صلاة",
+     "أصلي",
+     "اصلي"
+    ]
+   },
+   "where": {
+    "en": "Techno Point building, the same building as RIT Dubai",
+    "ar": "مبنى تكنو بوينت، نفس مبنى جامعة RIT دبي"
+   },
+   "directions": {
+    "en": [
+     "It's in the Techno Point building, a short taxi ride from here.",
+     "There is free parking."
+    ],
+    "ar": [
+     "المسجد في مبنى تكنو بوينت، على بُعد مسافة قصيرة بسيارة الأجرة.",
+     "يوجد موقف مجاني."
+    ]
+   },
+   "outside": true,
+   "maps_query": "DSO Masjid Techno Point Dubai Silicon Oasis"
+  },
+  {
+   "id": "al_waha_masjid",
+   "names": {
+    "en": [
+     "Al Waha Masjid",
+     "Al Waha Mosque"
+    ],
+    "ar": [
+     "مسجد الواحة"
+    ]
+   },
+   "keywords": {
+    "en": [
+     "mosque",
+     "masjid"
+    ],
+    "ar": [
+     "مسجد",
+     "جامع"
+    ]
+   },
+   "where": {
+    "en": "In Dubai Silicon Oasis",
+    "ar": "في واحة دبي للسيليكون"
+   },
+   "hours": "04:00-23:00",
+   "outside": true,
+   "maps_query": "Al Waha Masjid Dubai Silicon Oasis"
+  },
+  {
+   "id": "sheikha_ali_mosque",
+   "names": {
+    "en": [
+     "Sheikha Ali Mosque"
+    ],
+    "ar": [
+     "مسجد الشيخة علي"
+    ]
+   },
+   "keywords": {
+    "en": [
+     "mosque",
+     "masjid",
+     "big mosque"
+    ],
+    "ar": [
+     "مسجد",
+     "جامع"
+    ]
+   },
+   "where": {
+    "en": "In Dubai Silicon Oasis, next to Dubai Digital Park. Room for about 650 people.",
+    "ar": "في واحة دبي للسيليكون بجانب دبي ديجيتال بارك، ويتسع لنحو 650 مصلياً."
+   },
+   "outside": true,
+   "maps_query": "Sheikha Ali Mosque Dubai Silicon Oasis"
+  },
+  {
+   "id": "burjeel_dso",
+   "names": {
+    "en": [
+     "Burjeel Medical Center",
+     "Burjeel"
+    ],
+    "ar": [
+     "مركز برجيل الطبي",
+     "برجيل"
+    ]
+   },
+   "keywords": {
+    "en": [
+     "clinic",
+     "doctor",
+     "medical",
+     "hospital",
+     "sick",
+     "unwell"
+    ],
+    "ar": [
+     "عيادة",
+     "طبيب",
+     "دكتور",
+     "مستشفى",
+     "مريض"
+    ]
+   },
+   "where": {
+    "en": "Burjeel Medical Center DSO",
+    "ar": "مركز برجيل الطبي في واحة دبي للسيليكون"
+   },
+   "hours": "07:00-23:00",
+   "tip": {
+    "en": "In an emergency, call 999.",
+    "ar": "في حالات الطوارئ اتصل بالرقم 999."
+   },
+   "outside": true,
+   "maps_query": "Burjeel Medical Center Dubai Silicon Oasis"
+  },
+  {
+   "id": "life_medical_centre",
+   "names": {
+    "en": [
+     "Life Medical Centre",
+     "Life Medical Center"
+    ],
+    "ar": [
+     "لايف ميديكال سنتر"
+    ]
+   },
+   "keywords": {
+    "en": [
+     "clinic",
+     "doctor",
+     "medical",
+     "sick"
+    ],
+    "ar": [
+     "عيادة",
+     "طبيب",
+     "دكتور"
+    ]
+   },
+   "where": {
+    "en": "Life Medical Centre, Dubai Silicon Oasis",
+    "ar": "لايف ميديكال سنتر، واحة دبي للسيليكون"
+   },
+   "hours": "07:00-23:00",
+   "tip": {
+    "en": "In an emergency, call 999.",
+    "ar": "في حالات الطوارئ اتصل بالرقم 999."
+   },
+   "outside": true,
+   "maps_query": "Life Medical Centre Dubai Silicon Oasis"
+  },
+  {
+   "id": "life_pharmacy",
+   "names": {
+    "en": [
+     "Life Pharmacy",
+     "pharmacy",
+     "chemist"
+    ],
+    "ar": [
+     "صيدلية لايف",
+     "الصيدلية",
+     "صيدلية"
+    ]
+   },
+   "keywords": {
+    "en": [
+     "medicine",
+     "medication"
+    ],
+    "ar": [
+     "دواء",
+     "أدوية"
+    ]
+   },
+   "where": {
+    "en": "Palace Towers, Dubai Silicon Oasis",
+    "ar": "بالاس تاورز، واحة دبي للسيليكون"
+   },
+   "hours": "24h",
+   "outside": true,
+   "maps_query": "Life Pharmacy Palace Towers Dubai Silicon Oasis"
+  },
+  {
+   "id": "union_coop",
+   "names": {
+    "en": [
+     "Union Coop"
+    ],
+    "ar": [
+     "الاتحاد التعاونية",
+     "تعاونية الاتحاد"
+    ]
+   },
+   "keywords": {
+    "en": [
+     "supermarket",
+     "groceries",
+     "grocery"
+    ],
+    "ar": [
+     "سوبرماركت",
+     "بقالة"
+    ]
+   },
+   "where": {
+    "en": "Union Coop Silicon Oasis",
+    "ar": "تعاونية الاتحاد، واحة دبي للسيليكون"
+   },
+   "hours": "24h",
+   "outside": true,
+   "maps_query": "Union Coop Silicon Oasis"
+  },
+  {
+   "id": "souq_extra",
+   "names": {
+    "en": [
+     "Souq Extra"
+    ],
+    "ar": [
+     "سوق إكسترا"
+    ]
+   },
+   "keywords": {
+    "en": [
+     "supermarket",
+     "groceries"
+    ],
+    "ar": [
+     "سوبرماركت",
+     "بقالة"
+    ]
+   },
+   "where": {
+    "en": "Souq Extra, Dubai Silicon Oasis",
+    "ar": "سوق إكسترا، واحة دبي للسيليكون"
+   },
+   "hours": "24h",
+   "outside": true,
+   "maps_query": "Souq Extra Dubai Silicon Oasis"
+  },
+  {
+   "id": "bus",
+   "names": {
+    "en": [
+     "bus stop",
+     "bus",
+     "public transport"
+    ],
+    "ar": [
+     "موقف الحافلات",
+     "الباص",
+     "الحافلة"
+    ]
+   },
+   "where": {
+    "en": "Bus routes 50, 320, 365, 366 and X25 serve Dubai Silicon Oasis. Reception can point you to the nearest stop.",
+    "ar": "خطوط الحافلات 50 و320 و365 و366 وX25 تخدم واحة دبي للسيليكون. يمكن لمكتب الاستقبال إرشادك إلى أقرب موقف."
+   },
+   "outside": true
+  }
+ ],
+ "agent_id": "agent_4001m86cac97egtb840g9whcrbz3"
+}

@@ -31,9 +31,9 @@ const MAX_ITEMS = 50;
 const MAX_BODY = 32 * 1024;
 
 // ------------------------------------------------------------------ storage
-let db = { checkins: [], routes: [] };
+let db = { checkins: [], routes: [], operator_calls: [] };
 try {
-  db = { checkins: [], routes: [], ...JSON.parse(fs.readFileSync(DATA_FILE, "utf8")) };
+  db = { checkins: [], routes: [], operator_calls: [], ...JSON.parse(fs.readFileSync(DATA_FILE, "utf8")) };
 } catch {
   /* first run: start empty */
 }
@@ -101,6 +101,9 @@ function readBody(req) {
 
 function authorized(req) {
   if (!TOOL_SECRET) return true;
+  // The laptop demo page (/kiosk) runs on this same site and calls the tools from the browser.
+  // Browsers set Sec-Fetch-Site themselves; page scripts cannot fake it. All data here is demo data.
+  if (req.headers["sec-fetch-site"] === "same-origin") return true;
   const got = String(req.headers["x-tool-secret"] || "");
   const a = Buffer.from(got);
   const b = Buffer.from(TOOL_SECRET);
@@ -201,11 +204,37 @@ function handleSendRoute(body, req) {
   ];
 }
 
+function handleOperator(body) {
+  const language = clean(body.language, 10) || "en";
+  const item = {
+    id: newId(),
+    reason: clean(body.reason, 200) || "Visitor asked for help",
+    visitor_name: clean(body.visitor_name, 80),
+    language,
+    created_at: new Date().toISOString(),
+    demo: true,
+  };
+  pushLimited(db.operator_calls, item);
+  save();
+  broadcast("operator", item);
+  return [
+    200,
+    {
+      ok: true,
+      call_id: item.id,
+      message: isArabic(language)
+        ? "تم تنبيه موظف الاستقبال."
+        : "A colleague at reception has been alerted.",
+    },
+  ];
+}
+
 // ------------------------------------------------------------------ static files
 const TYPES = {
   ".html": "text/html; charset=utf-8",
   ".css": "text/css; charset=utf-8",
   ".js": "text/javascript; charset=utf-8",
+  ".json": "application/json; charset=utf-8",
   ".svg": "image/svg+xml",
   ".png": "image/png",
   ".ico": "image/x-icon",
@@ -236,17 +265,18 @@ const server = http.createServer(async (req, res) => {
     }
 
     // --- tools called by the ElevenLabs agent
-    if (req.method === "POST" && (p === "/api/check-in" || p === "/api/send-route")) {
+    if (req.method === "POST" && (p === "/api/check-in" || p === "/api/send-route" || p === "/api/operator")) {
       if (!authorized(req)) return sendJson(res, 401, { ok: false, message: "wrong or missing x-tool-secret" });
       const body = await readBody(req);
-      const [status, out] = p === "/api/check-in" ? handleCheckIn(body) : handleSendRoute(body, req);
+      const [status, out] =
+        p === "/api/check-in" ? handleCheckIn(body) : p === "/api/operator" ? handleOperator(body) : handleSendRoute(body, req);
       console.log(new Date().toISOString(), p, status, JSON.stringify(body).slice(0, 300));
       return sendJson(res, status, out);
     }
 
     if (req.method === "POST" && p === "/api/reset") {
       if (!authorized(req)) return sendJson(res, 401, { ok: false, message: "wrong or missing x-tool-secret" });
-      db = { checkins: [], routes: [] };
+      db = { checkins: [], routes: [], operator_calls: [] };
       save();
       broadcast("reset", {});
       return sendJson(res, 200, { ok: true });
@@ -257,6 +287,7 @@ const server = http.createServer(async (req, res) => {
       const base = baseUrl(req);
       return sendJson(res, 200, {
         checkins: db.checkins.slice(0, 20),
+        operator_calls: db.operator_calls.slice(0, 5),
         routes: db.routes.slice(0, 20).map((r) => ({ ...r, url: `${base}/r/${r.id}` })),
       });
     }
@@ -285,7 +316,7 @@ const server = http.createServer(async (req, res) => {
       if (p === "/kiosk") return serveFile(res, "kiosk.html");
       if (p === "/test") return serveFile(res, "test.html");
       if (p.startsWith("/r/")) return serveFile(res, "route.html");
-      if (/^\/[\w.-]+\.(css|js|svg|png|ico)$/.test(p)) return serveFile(res, p.slice(1));
+      if (/^\/[\w.-]+\.(css|js|json|svg|png|ico)$/.test(p)) return serveFile(res, p.slice(1));
     }
     sendJson(res, 404, { ok: false, message: "not found" });
   } catch (err) {

@@ -19,6 +19,17 @@
   }
 
   let checkins = [];
+  const opBox = document.getElementById("operator");
+  const opText = document.getElementById("operator-text");
+  document.getElementById("operator-done").onclick = () => { opBox.hidden = true; };
+
+  function showOperator(call) {
+    if (!call) { opBox.hidden = true; return; }
+    const who = call.visitor_name ? call.visitor_name + ": " : "";
+    opText.textContent = who + call.reason + " · " + timeAgo(call.created_at);
+    if (hasArabic(opText.textContent)) opText.dir = "rtl";
+    opBox.hidden = false;
+  }
 
   function renderArrivals(freshId) {
     arrivalsEl.replaceChildren();
@@ -93,7 +104,9 @@
       renderArrivals(c.id);
     });
     es.addEventListener("route", (e) => renderRoute(JSON.parse(e.data)));
+    es.addEventListener("operator", (e) => showOperator(JSON.parse(e.data)));
     es.addEventListener("reset", () => {
+      showOperator(null);
       checkins = [];
       renderArrivals();
       renderRoute(null);

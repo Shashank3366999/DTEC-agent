@@ -1,0 +1,21 @@
+{
+  "agent_id": "agent_4001m86cac97egtb840g9whcrbz3",
+  "tools": {
+    "lookup_place": {
+      "id": "tool_0301m86nsh6xec092de2aywrb30r",
+      "hash": "e57df8147468"
+    },
+    "check_in_visitor": {
+      "id": "tool_5201m86nshnhek9a1ka1s7wa6chb",
+      "hash": "8c37305f3c0e"
+    },
+    "send_route_to_phone": {
+      "id": "tool_9301m86nsj1qe578g2r8pwb0xk2w",
+      "hash": "5e9828a88d77"
+    },
+    "request_operator": {
+      "id": "tool_0101m86nsjf8fhfavws46789xv0b",
+      "hash": "981fd5a184a0"
+    }
+  }
+}
